@@ -9,6 +9,7 @@ using Unity.Mathematics;
 public partial struct RaycastTestSystem : ISystem
 {
     private Random _Random;
+    private Entity _BufferEntity;
 
     [BurstCompile]
     public void OnCreate(ref SystemState state)
@@ -22,7 +23,7 @@ public partial struct RaycastTestSystem : ISystem
     {
         CollisionWorld world = SystemAPI.GetSingleton<PhysicsWorldSingleton>().CollisionWorld;
 
-        float3 endDir = new float3(math.cos((float)math.radians(SystemAPI.Time.ElapsedTime * 360) / 2), (float)math.sin(math.radians(SystemAPI.Time.ElapsedTime * 360) / 2), 0);
+        float3 endDir = new(math.cos((float)math.radians(SystemAPI.Time.ElapsedTime * 360)), (float)math.sin(math.radians(SystemAPI.Time.ElapsedTime * 360)), 0);
 
         RaycastInput input = new RaycastInput
         {
@@ -40,6 +41,10 @@ public partial struct RaycastTestSystem : ISystem
 
         if (world.CastRay(input, out RaycastHit hit))
         {
+            if (_BufferEntity == hit.Entity) return;
+
+            _BufferEntity = hit.Entity;
+
             var flash = SystemAPI.GetComponentRW<ColorFlashComponent>(hit.Entity);
             if (flash.IsValid)
             {
@@ -48,10 +53,12 @@ public partial struct RaycastTestSystem : ISystem
 
                 flash.ValueRW.StartTime = SystemAPI.Time.ElapsedTime;
 
-                float3 rnd = math.normalize(_Random.NextFloat3());
-
-                flash.ValueRW.FlashColor = UnityEngine.Color.HSVToRGB(_Random.NextFloat(), 1f, 1f);//new UnityEngine.Color(rnd.x, rnd.y, rnd.z);
+                flash.ValueRW.FlashColor = UnityEngine.Color.HSVToRGB(_Random.NextFloat(), 1f, 1f);
             }
+
+            var floor = SystemAPI.GetAspect<FloorBehaviourAspect>(hit.Entity);
+
+            floor.SetHeight(!floor.Tall);
         }
     }
 }
