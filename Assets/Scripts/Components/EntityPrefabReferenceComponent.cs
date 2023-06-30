@@ -6,5 +6,5 @@ using UnityEngine;
 
 public struct EntityPrefabComponent : IComponentData
 {
-    public EntityPrefabReference Value;
+    public Entity Value;
 }

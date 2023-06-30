@@ -4,16 +4,16 @@ using Unity.Entities.Serialization;
 using Unity.Entities;
 using UnityEngine;
 
-public class GetPrefabReferenceAuthoring : MonoBehaviour
+public class GetPrefabAuthoring : MonoBehaviour
 {
     public GameObject Prefab;
 }
 
-public class GetPrefabReferenceBaker : Baker<GetPrefabReferenceAuthoring>
+public class GetPrefabBaker : Baker<GetPrefabAuthoring>
 {
-    public override void Bake(GetPrefabReferenceAuthoring authoring)
+    public override void Bake(GetPrefabAuthoring authoring)
     {
-        var entityPrefab = new EntityPrefabReference(authoring.Prefab);
+        var entityPrefab = GetEntity(authoring.Prefab, TransformUsageFlags.Dynamic);
         var entity = GetEntity(TransformUsageFlags.Dynamic);
         AddComponent(entity, new EntityPrefabComponent() { Value = entityPrefab });
     }

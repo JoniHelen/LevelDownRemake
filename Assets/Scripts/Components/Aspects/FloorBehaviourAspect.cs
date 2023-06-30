@@ -17,15 +17,20 @@ public readonly partial struct FloorBehaviourAspect : IAspect
         set => _Floor.ValueRW.Tall = value;
     }
 
+    public float3 Position
+    {
+        get => _Transform.ValueRO.Value.Translation();
+        set => _Transform.ValueRW.Value.c3 = new float4(value, 1);
+    }
+
     public void SetHeight(bool tall)
     {
         if (_Floor.ValueRO.Tall == tall) return;
 
         _Floor.ValueRW.Tall = tall;
 
-        if (tall)
-            _Transform.ValueRW.Value = float4x4.TRS(new float3(0, 0, -0.5f), quaternion.identity, new float3(1, 1, 2));
-        else
-            _Transform.ValueRW.Value = float4x4.identity;
+        float4x4 tallTransform = float4x4.TRS(new float3(0, 0, -0.5f), quaternion.identity, new float3(1, 1, 2));
+
+        _Transform.ValueRW.Value = math.mul(tall ? tallTransform : math.inverse(tallTransform), _Transform.ValueRO.Value);
     }
 }
