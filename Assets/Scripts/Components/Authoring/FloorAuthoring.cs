@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using Unity.Entities;
 using Unity.Transforms;
@@ -16,7 +14,7 @@ public class FloorBaker : Baker<FloorAuthoring>
     {
         Entity entity = GetEntity(TransformUsageFlags.Dynamic);
 
-        AddComponent(entity, new FloorComponent
+        AddComponent(entity, new Floor
         {
             Tall = false
         });
@@ -25,5 +23,14 @@ public class FloorBaker : Baker<FloorAuthoring>
         {
             Value = float4x4.identity
         });
+
+        AddComponent<RandomValue>(entity);
+
+        AddComponent(entity, new Shrinking
+        {
+            Duration = 0.5f
+        });
+
+        SetComponentEnabled<Shrinking>(entity, false);
     }
 }

@@ -1,60 +1,54 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 using Unity.Entities;
 using Unity.Burst;
 using Unity.Collections;
-using Unity.Transforms;
 using Unity.Jobs;
+using Unity.Mathematics;
+using Unity.Physics;
 
-[BurstCompile]
-public partial struct LevelGeneratorSystem : ISystem, ISystemStartStop
+/// <summary>
+/// This system is responsible for generating new levels
+/// </summary>
+public partial struct LevelGeneratorSystem : ISystem
 {
-    [BurstCompile]
+    private NativeArray<float4> NoiseArray;
+    private float2 Dimensions;
+
+    [BurstCompile(FloatMode = FloatMode.Fast, OptimizeFor = OptimizeFor.Performance, CompileSynchronously = true)]
     public void OnCreate(ref SystemState state)
     {
-        state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<EntityPrefabComponent>().Build());
-        state.EntityManager.CreateSingletonBuffer<EntityDynamicBufferComponent>();
-        state.EntityManager.CreateSingleton<GameStateDataSingletonComponent>();
-
-        SystemAPI.GetSingletonRW<GameStateDataSingletonComponent>().ValueRW.RequireNewLevel = true;
+        Dimensions = new(32, 18);
+        NoiseArray = new((int)(Dimensions.x * Dimensions.y), Allocator.Persistent);
+        state.RequireForUpdate<GenerateLevelTriggerTag>();
     }
 
-    [BurstCompile]
-    public void OnStartRunning(ref SystemState state)
-    {
-        var instance = state.EntityManager.Instantiate(SystemAPI.GetSingleton<EntityPrefabComponent>().Value, 1152, Allocator.Temp);
-        SystemAPI.GetSingletonBuffer<EntityDynamicBufferComponent>().AddRange(instance.Reinterpret<EntityDynamicBufferComponent>());
-        instance.Dispose();
-    }
-
-    [BurstCompile]
+    [BurstCompile(FloatMode = FloatMode.Fast, OptimizeFor = OptimizeFor.Performance, CompileSynchronously = true)]
     public void OnUpdate(ref SystemState state)
     {
-        var data = SystemAPI.GetSingletonRW<GameStateDataSingletonComponent>();
+        JobHandle noiseJob = new VectorizedNoiseGenerationJob {
+            ResultNoise = NoiseArray,
+            Extents = Dimensions,
+            invHeight = 1 / Dimensions.y,
+            Offset = (float)SystemAPI.Time.ElapsedTime,
+            Scale = 4
+        }.Schedule(NoiseArray.Length, 4, state.Dependency);
 
-        if (!data.ValueRO.RequireNewLevel) return;
+        state.Dependency = new LevelGenerationJob {
+            Extents = Dimensions,
+            invHeight = 1 / Dimensions.y,
+            tallThreshold = 0.6f,
+            Noise = NoiseArray.Reinterpret<float>(16),
+            ecb = SystemAPI.GetSingletonRW<BeginSimulationEntityCommandBufferSystem.Singleton>()
+            .ValueRW.CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter()
+        }.ScheduleParallel(noiseJob);
 
-        var entities = SystemAPI.QueryBuilder().WithAll<FloorComponent, PostTransformMatrix, Disabled>().Build()
-            .ToComponentDataArray<PostTransformMatrix>(Allocator.TempJob);
-
-        var slice = entities.Slice(0, 576);
-
-        JobHandle gen = new LevelGenerationJob()
-        {
-            FreeEntities = slice
-        }.ScheduleBatch(slice.Length, 18);
-
-        gen.Complete();
-
-        entities.Dispose();
-
-        data.ValueRW.RequireNewLevel = false;
+        SystemAPI.GetSingletonRW<BeginSimulationEntityCommandBufferSystem.Singleton>()
+            .ValueRW.CreateCommandBuffer(state.WorldUnmanaged).RemoveComponent<GenerateLevelTriggerTag>(
+            SystemAPI.GetSingletonEntity<TriggerTagSingleton>());
     }
 
-    [BurstCompile]
-    public void OnStopRunning(ref SystemState state)
+    [BurstCompile(FloatMode = FloatMode.Fast, OptimizeFor = OptimizeFor.Performance, CompileSynchronously = true)]
+    public void OnDestroy(ref SystemState state)
     {
-
+        NoiseArray.Dispose();
     }
 }

@@ -1,34 +1,31 @@
-using System.Collections;
-using System.Collections.Generic;
 using Unity.Entities;
 using Unity.Physics;
 using Unity.Burst;
 using Unity.Mathematics;
 
-[BurstCompile]
 public partial struct RaycastTestSystem : ISystem
 {
     private Random _Random;
     private Entity _BufferEntity;
 
-    [BurstCompile]
+    [BurstCompile(FloatMode = FloatMode.Fast, OptimizeFor = OptimizeFor.Performance, CompileSynchronously = true)]
     public void OnCreate(ref SystemState state)
     {
         _Random = new Random();
         _Random.InitState();
     }
 
-    [BurstCompile]
+    [BurstCompile(FloatMode = FloatMode.Fast, OptimizeFor = OptimizeFor.Performance, CompileSynchronously = true)]
     public void OnUpdate(ref SystemState state)
     {
         CollisionWorld world = SystemAPI.GetSingleton<PhysicsWorldSingleton>().CollisionWorld;
 
-        float3 endDir = new(math.cos((float)math.radians(SystemAPI.Time.ElapsedTime * 360)), (float)math.sin(math.radians(SystemAPI.Time.ElapsedTime * 360)), 0);
+        float3 endDir = new(math.cos((float)math.radians(SystemAPI.Time.ElapsedTime * 360) / 2f), (float)math.sin(math.radians(SystemAPI.Time.ElapsedTime * 360) / 2f), 0);
 
-        RaycastInput input = new RaycastInput
+        RaycastInput input = new()
         {
-            Start = float3.zero,
-            End = endDir * 20f,
+            Start = new float3(0, 0, -1),
+            End = endDir * 20f + new float3(0, 0, -1),
             Filter = new CollisionFilter
             {
                 BelongsTo = ~0u,
@@ -36,9 +33,9 @@ public partial struct RaycastTestSystem : ISystem
                 GroupIndex = 0
             }
         };
-
+        /*
         UnityEngine.Debug.DrawLine(input.Start, input.End);
-
+        
         if (world.CastRay(input, out RaycastHit hit))
         {
             if (_BufferEntity == hit.Entity) return;
@@ -55,10 +52,6 @@ public partial struct RaycastTestSystem : ISystem
 
                 flash.ValueRW.FlashColor = UnityEngine.Color.HSVToRGB(_Random.NextFloat(), 1f, 1f);
             }
-
-            var floor = SystemAPI.GetAspect<FloorBehaviourAspect>(hit.Entity);
-
-            floor.SetHeight(!floor.Tall);
-        }
+        }*/
     }
 }

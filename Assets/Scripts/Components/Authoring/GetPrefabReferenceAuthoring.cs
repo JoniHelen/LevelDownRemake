@@ -1,6 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
-using Unity.Entities.Serialization;
 using Unity.Entities;
 using UnityEngine;
 
@@ -15,6 +12,6 @@ public class GetPrefabBaker : Baker<GetPrefabAuthoring>
     {
         var entityPrefab = GetEntity(authoring.Prefab, TransformUsageFlags.Dynamic);
         var entity = GetEntity(TransformUsageFlags.Dynamic);
-        AddComponent(entity, new EntityPrefabComponent() { Value = entityPrefab });
+        AddComponent(entity, new EntityPrefab() { Value = entityPrefab });
     }
 }

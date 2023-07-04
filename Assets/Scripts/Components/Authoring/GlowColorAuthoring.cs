@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using Unity.Entities;
 using UnityEngine;
 
@@ -16,18 +14,20 @@ public class GlowColorBaker : Baker<GlowColorAuthoring>
     {
         Entity entity = GetEntity(TransformUsageFlags.Dynamic);
 
-        AddComponent(entity, new GlowColorComponent
+        AddComponent(entity, new GlowColor
         {
             Color = authoring.color
         });
 
-        AddComponent(entity, new GlowBrightnessComponent {
+        AddComponent(entity, new GlowBrightness {
             Value = authoring.value
         });
 
-        AddComponent(entity, new ColorFlashComponent
+        AddComponent(entity, new ColorFlash
         {
-            Finished = true
+            Finished = true,
+            BaseColor = Color.white,
+            Duration = 0.3f
         });
     }
 }

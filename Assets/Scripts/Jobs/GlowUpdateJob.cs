@@ -1,34 +1,22 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
 
-[BurstCompile]
+[BurstCompile(FloatMode = FloatMode.Fast, OptimizeFor = OptimizeFor.Performance, CompileSynchronously = true)]
 public partial struct GlowUpdateJob : IJobEntity
 {
     public double Time;
-    public double Duration;
-    public Color BaseColor;
 
-    [BurstCompile]
     public void Execute(ColorFlashAspect aspect)
     {
         if (aspect.Finished) return;
 
-        double timeSinceStart = Time - aspect.StartTime;
+        float timeSinceStart = (float)(Time - aspect.StartTime);
+        float baseGlow = aspect.Tall ? 0f : 1.1f;
 
-        if (timeSinceStart < Duration)
-        {
-            aspect.Color = Color.Lerp(aspect.FlashColor, BaseColor, (float)(timeSinceStart / Duration));
-            aspect.Brightness = math.lerp(20f, 2f, (float)(timeSinceStart / Duration));
-        }
-        else
-        {
-            aspect.Color = BaseColor;
-            aspect.Brightness = 2f;
-            aspect.Finished = true;
-        }
+        aspect.Color = timeSinceStart < aspect.Duration ? Color.Lerp(aspect.FlashColor, aspect.BaseColor, timeSinceStart / aspect.Duration) : aspect.BaseColor;
+        aspect.Brightness = timeSinceStart < aspect.Duration ? math.lerp(15f, baseGlow, timeSinceStart / aspect.Duration) : baseGlow;
+        aspect.Finished = timeSinceStart >= aspect.Duration;
     }
 }
