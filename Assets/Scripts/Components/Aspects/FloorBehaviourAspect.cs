@@ -7,68 +7,66 @@ public readonly partial struct FloorBehaviourAspect : IAspect
 {
     public readonly Entity Self;
 
-    private readonly RefRW<PostTransformMatrix> _Transform;
-    private readonly ColorFlashAspect _Flash;
-    private readonly RefRO<PhysicsCollider> _PhysicsCollider;
+    private readonly RefRW<PostTransformMatrix> _transform;
+    private readonly RefRW<LocalTransform> _local;
+    private readonly ColorFlashAspect _flash;
+    private readonly RefRW<PhysicsCollider> _physicsCollider;
+    private readonly RefRW<PhysicsVelocity> _velocity;
 
     public bool Tall
     {
-        get => _Flash.Tall;
-        set => _Flash.Tall = value;
+        get => _flash.Tall;
+        set => _flash.Tall = value;
     }
 
     public float3 Position
     {
-        get => _Transform.ValueRO.Value.Translation();
-        set
-        {
-            _Transform.ValueRW.Value.c3 = new float4(value, 1);
-            unsafe
-            {
-                BoxCollider* boxPtr = (BoxCollider*)_PhysicsCollider.ValueRO.ColliderPtr;
-                BoxGeometry geometry = boxPtr->Geometry;
-                geometry.Center = _Transform.ValueRO.Value.Translation();
-                boxPtr->Geometry = geometry;
-            }
-        }
+        get => _local.ValueRO.Position;
+        set => _local.ValueRW.Position = value;
+    }
+
+    public quaternion Rotation
+    {
+        get => _local.ValueRO.Rotation;
+        set => _local.ValueRW.Rotation = value;
     }
 
     public float3 Scale
     {
-        get => _Transform.ValueRO.Value.Scale();
+        get => _transform.ValueRO.Value.Scale();
         set
         {
-            _Transform.ValueRW.Value.c0.x = value.x;
-            _Transform.ValueRW.Value.c1.y = value.y;
-            _Transform.ValueRW.Value.c2.z = value.z;
+            _transform.ValueRW.Value.c0.x = value.x;
+            _transform.ValueRW.Value.c1.y = value.y;
+            _transform.ValueRW.Value.c2.z = value.z;
         }
     }
 
-    public float4x4 PostMatrix
+    public float3 TallScale { get => new(1, 1, 2); }
+
+    public float UniformScale
     {
-        get => _Transform.ValueRO.Value;
-        set => _Transform.ValueRW.Value = value;
+        get => _local.ValueRO.Scale;
+        set => _local.ValueRW.Scale = value;
     }
 
-    public void SetHeight(bool tall)
+    public void Reset(FloorPhysicsBlobs blobs)
     {
-        if (_Flash.Tall == tall) return;
+        SetHeight(false, blobs);
+        Scale = 1;
+        Position = 0;
+        Rotation = quaternion.identity;
+        _velocity.ValueRW.Linear = _velocity.ValueRW.Angular = 0;
+    }
 
-        _Flash.Tall = tall;
+    public void SetHeight(bool tall, FloorPhysicsBlobs blobs)
+    {
+        if (Tall == tall) return;
 
-        _Flash.Brightness = tall ? 0 : 1.1f;
-
-        float4x4 tallTransform = float4x4.TRS(new float3(0, 0, -0.5f), quaternion.identity, new float3(1, 1, 2));
-
-        _Transform.ValueRW.Value = math.mul(tall ? tallTransform : math.inverse(tallTransform), _Transform.ValueRO.Value);
-
-        unsafe
-        {
-            BoxCollider* boxPtr = (BoxCollider*)_PhysicsCollider.ValueRO.ColliderPtr;
-            BoxGeometry geometry = boxPtr->Geometry;
-            geometry.Size = tall ? new float3(1, 1, 2) : 1;
-            geometry.Center = _Transform.ValueRO.Value.Translation();
-            boxPtr->Geometry = geometry;
-        }
+        Tall = tall;
+        _flash.Brightness = tall ? 0 : 1.1f;
+        Scale = tall ? TallScale : 1;
+        Position += tall ? new float3(0, 0, -0.5f) : new(0, 0, 0.5f);
+        _physicsCollider.ValueRW.Value = tall ? blobs.Tall : blobs.Small;
     }
 }

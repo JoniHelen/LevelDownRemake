@@ -1,0 +1,20 @@
+using UnityEngine;
+using Unity.Entities;
+
+public class PlayerInputAuthoring : MonoBehaviour
+{
+    public float MovementSpeed;
+}
+
+public class PlayerInputBaker : Baker<PlayerInputAuthoring>
+{
+    public override void Bake(PlayerInputAuthoring authoring)
+    {
+        var entity = GetEntity(TransformUsageFlags.Dynamic);
+
+        AddComponent(entity, new PlayerInput
+        {
+            MovementSpeed = authoring.MovementSpeed
+        });
+    }
+}

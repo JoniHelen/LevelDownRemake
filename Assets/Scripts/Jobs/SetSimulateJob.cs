@@ -5,9 +5,9 @@ using Unity.Burst;
 [BurstCompile(FloatMode = FloatMode.Fast, OptimizeFor = OptimizeFor.Performance, CompileSynchronously = true)]
 public partial struct SetSimulateJob : IJobEntity
 {
-    public bool boolToSet;
-    public EntityCommandBuffer.ParallelWriter ecb;
+    public bool BoolToSet;
+    public EntityCommandBuffer.ParallelWriter Ecb;
 
     public void Execute([ChunkIndexInQuery] int key, Entity entity) 
-        => ecb.SetComponentEnabled<Simulate>(key, entity, boolToSet);
+        => Ecb.SetComponentEnabled<Simulate>(key, entity, BoolToSet);
 }

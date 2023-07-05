@@ -10,14 +10,14 @@ public struct VectorizedNoiseGenerationJob : IJobParallelFor
     public NativeArray<float4> ResultNoise;
 
     public float2 Extents, Offset;
-    public float invHeight, Scale;
+    public float InvHeight, Scale;
 
     public void Execute(int index)
     {
         int realIndex = index * 4;
 
         float4 i = new(realIndex, realIndex + 1, realIndex + 2, realIndex + 3);
-        float4 u = math.floor(invHeight * i + 0.00001f);
+        float4 u = math.floor(InvHeight * i + 0.00001f);
         float4 v = i - Extents.y * u;
 
         u /= Extents.x > Extents.y ? Extents.y : Extents.x;

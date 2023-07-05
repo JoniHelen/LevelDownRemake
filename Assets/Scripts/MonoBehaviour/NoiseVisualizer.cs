@@ -37,7 +37,7 @@ public class NoiseVisualizer : MonoBehaviour
         new VectorizedNoiseGenerationJob {
             ResultNoise = noiseVectors,
             Extents = resolution,
-            invHeight = 1f / resolution.y,
+            InvHeight = 1f / resolution.y,
             Offset = 0,
             Scale = 3
         }.Schedule(noiseVectors.Length, 8).Complete();

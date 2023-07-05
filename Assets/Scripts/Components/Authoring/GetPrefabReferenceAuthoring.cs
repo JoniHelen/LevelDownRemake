@@ -10,8 +10,8 @@ public class GetPrefabBaker : Baker<GetPrefabAuthoring>
 {
     public override void Bake(GetPrefabAuthoring authoring)
     {
-        var entityPrefab = GetEntity(authoring.Prefab, TransformUsageFlags.Dynamic);
         var entity = GetEntity(TransformUsageFlags.Dynamic);
-        AddComponent(entity, new EntityPrefab() { Value = entityPrefab });
+        var entityPrefab = GetEntity(authoring.Prefab, TransformUsageFlags.Dynamic);
+        AddComponent(entity, new EntityPrefab { Value = entityPrefab });
     }
 }

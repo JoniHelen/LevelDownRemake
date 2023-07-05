@@ -16,5 +16,7 @@ public partial struct PhysicsColliderGenerationJob : IJobEntity
             Size = 1,
             Orientation = quaternion.identity
         });
+
+        collider.Value.Value.SetCollisionFilter(CollisionFilter.Zero);
     }
 }

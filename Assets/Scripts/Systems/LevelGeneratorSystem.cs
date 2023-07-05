@@ -10,14 +10,14 @@ using Unity.Physics;
 /// </summary>
 public partial struct LevelGeneratorSystem : ISystem
 {
-    private NativeArray<float4> NoiseArray;
-    private float2 Dimensions;
+    private NativeArray<float4> _noiseArray;
+    private float2 _dimensions;
 
     [BurstCompile(FloatMode = FloatMode.Fast, OptimizeFor = OptimizeFor.Performance, CompileSynchronously = true)]
     public void OnCreate(ref SystemState state)
     {
-        Dimensions = new(32, 18);
-        NoiseArray = new((int)(Dimensions.x * Dimensions.y), Allocator.Persistent);
+        _dimensions = new(32, 18);
+        _noiseArray = new((int)(_dimensions.x * _dimensions.y), Allocator.Persistent);
         state.RequireForUpdate<GenerateLevelTriggerTag>();
     }
 
@@ -25,30 +25,28 @@ public partial struct LevelGeneratorSystem : ISystem
     public void OnUpdate(ref SystemState state)
     {
         JobHandle noiseJob = new VectorizedNoiseGenerationJob {
-            ResultNoise = NoiseArray,
-            Extents = Dimensions,
-            invHeight = 1 / Dimensions.y,
+            ResultNoise = _noiseArray,
+            Extents = _dimensions,
+            InvHeight = 1 / _dimensions.y,
             Offset = (float)SystemAPI.Time.ElapsedTime,
             Scale = 4
-        }.Schedule(NoiseArray.Length, 4, state.Dependency);
+        }.Schedule(_noiseArray.Length, 4, state.Dependency);
 
         state.Dependency = new LevelGenerationJob {
-            Extents = Dimensions,
-            invHeight = 1 / Dimensions.y,
-            tallThreshold = 0.6f,
-            Noise = NoiseArray.Reinterpret<float>(16),
-            ecb = SystemAPI.GetSingletonRW<BeginSimulationEntityCommandBufferSystem.Singleton>()
+            Extents = _dimensions,
+            InvHeight = 1 / _dimensions.y,
+            TallThreshold = 0.6f,
+            PhysicsBlobs = SystemAPI.GetSingleton<FloorPhysicsBlobs>(),
+            Noise = _noiseArray.Reinterpret<float>(16),
+            Ecb = SystemAPI.GetSingletonRW<EndSimulationEntityCommandBufferSystem.Singleton>()
             .ValueRW.CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter()
         }.ScheduleParallel(noiseJob);
 
-        SystemAPI.GetSingletonRW<BeginSimulationEntityCommandBufferSystem.Singleton>()
+        SystemAPI.GetSingletonRW<EndSimulationEntityCommandBufferSystem.Singleton>()
             .ValueRW.CreateCommandBuffer(state.WorldUnmanaged).RemoveComponent<GenerateLevelTriggerTag>(
             SystemAPI.GetSingletonEntity<TriggerTagSingleton>());
     }
 
     [BurstCompile(FloatMode = FloatMode.Fast, OptimizeFor = OptimizeFor.Performance, CompileSynchronously = true)]
-    public void OnDestroy(ref SystemState state)
-    {
-        NoiseArray.Dispose();
-    }
+    public void OnDestroy(ref SystemState state) => _noiseArray.Dispose();
 }

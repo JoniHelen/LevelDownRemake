@@ -12,8 +12,8 @@ public partial struct GlowUpdateJob : IJobEntity
     {
         if (aspect.Finished) return;
 
-        float timeSinceStart = (float)(Time - aspect.StartTime);
-        float baseGlow = aspect.Tall ? 0f : 1.1f;
+        var timeSinceStart = (float)(Time - aspect.StartTime);
+        var baseGlow = aspect.Tall ? 0f : 1.1f;
 
         aspect.Color = timeSinceStart < aspect.Duration ? Color.Lerp(aspect.FlashColor, aspect.BaseColor, timeSinceStart / aspect.Duration) : aspect.BaseColor;
         aspect.Brightness = timeSinceStart < aspect.Duration ? math.lerp(15f, baseGlow, timeSinceStart / aspect.Duration) : baseGlow;

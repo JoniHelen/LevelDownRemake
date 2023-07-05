@@ -5,55 +5,55 @@ public readonly partial struct ColorFlashAspect : IAspect
 {
     public readonly Entity Self;
 
-    private readonly RefRW<GlowColor> _Color;
-    private readonly RefRW<GlowBrightness> _Brightness;
-    private readonly RefRW<ColorFlash> _Flash;
-    private readonly RefRW<Floor> _Floor;
+    private readonly RefRW<GlowColor> _color;
+    private readonly RefRW<GlowBrightness> _brightness;
+    private readonly RefRW<ColorFlash> _flash;
+    private readonly RefRW<Floor> _floor;
 
     public Color Color
     {
-        get => _Color.ValueRO.Color;
-        set => _Color.ValueRW.Color = value;
+        get => _color.ValueRO.Color;
+        set => _color.ValueRW.Color = value;
     }
 
     public Color FlashColor
     {
-        get => _Flash.ValueRO.FlashColor;
-        set => _Flash.ValueRW.FlashColor = value;
+        get => _flash.ValueRO.FlashColor;
+        set => _flash.ValueRW.FlashColor = value;
     }
     public Color BaseColor
     {
-        get => _Flash.ValueRO.BaseColor;
-        set => _Flash.ValueRW.BaseColor = value;
+        get => _flash.ValueRO.BaseColor;
+        set => _flash.ValueRW.BaseColor = value;
     }
 
     public float Duration
     {
-        get => _Flash.ValueRO.Duration;
-        set => _Flash.ValueRW.Duration = value;
+        get => _flash.ValueRO.Duration;
+        set => _flash.ValueRW.Duration = value;
     }
 
     public float Brightness
     {
-        get => _Brightness.ValueRO.Value;
-        set => _Brightness.ValueRW.Value = value;
+        get => _brightness.ValueRO.Value;
+        set => _brightness.ValueRW.Value = value;
     }
 
     public double StartTime
     {
-        get => _Flash.ValueRO.StartTime;
-        set => _Flash.ValueRW.StartTime = value;
+        get => _flash.ValueRO.StartTime;
+        set => _flash.ValueRW.StartTime = value;
     }
 
     public bool Finished
     {
-        get => _Flash.ValueRO.Finished;
-        set => _Flash.ValueRW.Finished = value;
+        get => _flash.ValueRO.Finished;
+        set => _flash.ValueRW.Finished = value;
     }
 
     public bool Tall
     {
-        get => _Floor.ValueRO.Tall;
-        set => _Floor.ValueRW.Tall = value;
+        get => _floor.ValueRO.Tall;
+        set => _floor.ValueRW.Tall = value;
     }
 }

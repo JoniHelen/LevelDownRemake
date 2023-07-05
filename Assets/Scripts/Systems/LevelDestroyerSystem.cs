@@ -15,7 +15,7 @@ public partial struct LevelDestroyerSystem : ISystem, ISystemStartStop
     [BurstCompile(FloatMode = FloatMode.Fast, OptimizeFor = OptimizeFor.Performance, CompileSynchronously = true)]
     public void OnStartRunning(ref SystemState state)
     {
-        Entity destroyerEntity = SystemAPI.GetSingletonEntity<LevelDestroyerData>();
+        var destroyerEntity = SystemAPI.GetSingletonEntity<LevelDestroyerData>();
         var destroyerData = SystemAPI.GetComponentRW<LevelDestroyerData>(destroyerEntity);
 
         destroyerData.ValueRW.StartTime = SystemAPI.Time.ElapsedTime;
@@ -31,30 +31,30 @@ public partial struct LevelDestroyerSystem : ISystem, ISystemStartStop
     [BurstCompile(FloatMode = FloatMode.Fast, OptimizeFor = OptimizeFor.Performance, CompileSynchronously = true)]
     public void OnUpdate(ref SystemState state)
     {
-        Entity destroyerEntity = SystemAPI.GetSingletonEntity<LevelDestroyerData>();
+        var destroyerEntity = SystemAPI.GetSingletonEntity<LevelDestroyerData>();
         var destroyerData = SystemAPI.GetComponentRW<LevelDestroyerData>(destroyerEntity);
 
-        float timeSinceStart = (float)(SystemAPI.Time.ElapsedTime - destroyerData.ValueRO.StartTime);
+        var timeSinceStart = (float)(SystemAPI.Time.ElapsedTime - destroyerData.ValueRO.StartTime);
 
         if (timeSinceStart < destroyerData.ValueRO.Duration)
         {
             NativeList<DistanceHit> distanceHits = new(state.WorldUpdateAllocator);
 
-            SystemAPI.GetSingleton<PhysicsWorldSingleton>().CollisionWorld
+            _ = SystemAPI.GetSingleton<PhysicsWorldSingleton>().CollisionWorld
                 .OverlapSphere(0, math.lerp(0, destroyerData.ValueRO.TargetRadius, timeSinceStart / destroyerData.ValueRO.Duration), ref distanceHits, CollisionFilter.Default);
 
             new LevelDestroyerJob {
                 Time = SystemAPI.Time.ElapsedTime,
-                hits = distanceHits,
-                destroyerSingleton = destroyerEntity,
-                buffer = SystemAPI.GetBuffer<EntityBuffer>(destroyerEntity),
-                ecb = SystemAPI.GetSingletonRW<BeginSimulationEntityCommandBufferSystem.Singleton>()
+                Hits = distanceHits,
+                DestroyerSingleton = destroyerEntity,
+                Buffer = SystemAPI.GetBuffer<EntityBuffer>(destroyerEntity),
+                Ecb = SystemAPI.GetSingletonRW<EndSimulationEntityCommandBufferSystem.Singleton>()
                 .ValueRW.CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter()
             }.ScheduleParallel();
         }
         else
         {
-            SystemAPI.GetSingletonRW<BeginSimulationEntityCommandBufferSystem.Singleton>()
+            SystemAPI.GetSingletonRW<EndSimulationEntityCommandBufferSystem.Singleton>()
                 .ValueRW.CreateCommandBuffer(state.WorldUnmanaged).RemoveComponent<DestroyLevelTriggerTag>(
                 SystemAPI.GetSingletonEntity<TriggerTagSingleton>());
         }

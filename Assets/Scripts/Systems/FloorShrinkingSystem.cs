@@ -11,7 +11,8 @@ public partial struct FloorShrinkingSystem : ISystem
     public void OnUpdate(ref SystemState state) => new FloorResetJob
     {
         Time = SystemAPI.Time.ElapsedTime,
-        ecb = SystemAPI.GetSingletonRW<EndSimulationEntityCommandBufferSystem.Singleton>()
+        PhysicsBlobs = SystemAPI.GetSingleton<FloorPhysicsBlobs>(),
+        Ecb = SystemAPI.GetSingletonRW<EndSimulationEntityCommandBufferSystem.Singleton>()
             .ValueRW.CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter()
     }.Schedule();
 }
