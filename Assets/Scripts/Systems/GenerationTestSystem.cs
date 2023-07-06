@@ -20,14 +20,14 @@ public partial struct GenerationTestSystem : ISystem
         test.ValueRW.DestroyTime += SystemAPI.Time.DeltaTime;
 
         new LevelGenerationTriggerJob {
-            Ecb = SystemAPI.GetSingletonRW<EndSimulationEntityCommandBufferSystem.Singleton>()
-            .ValueRW.CreateCommandBuffer(state.WorldUnmanaged),
+            Ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+            .CreateCommandBuffer(state.WorldUnmanaged),
             TriggerSingleton = trigger
         }.Schedule();
 
         new LevelDestructionTriggerJob {
-            Ecb = SystemAPI.GetSingletonRW<EndSimulationEntityCommandBufferSystem.Singleton>()
-            .ValueRW.CreateCommandBuffer(state.WorldUnmanaged),
+            Ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+            .CreateCommandBuffer(state.WorldUnmanaged),
             TriggerSingleton = trigger
         }.Schedule();
     }

@@ -289,7 +289,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b275e5f92732148048d7b77e264ac30e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_ShapeType: 0
+  m_ShapeType: 2
   m_PrimitiveCenter:
     x: 0
     y: 0
@@ -497,11 +497,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ccea9ea98e38942e0b0938c27ed1903e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_MotionType: 1
-  m_Smoothing: 1
-  m_Mass: 1
-  m_LinearDamping: 0.01
-  m_AngularDamping: 1
+  m_MotionType: 0
+  m_Smoothing: 0
+  m_Mass: 10
+  m_LinearDamping: 0
+  m_AngularDamping: 0
   m_InitialLinearVelocity:
     x: 0
     y: 0
@@ -511,7 +511,7 @@ MonoBehaviour:
     y: 0
     z: 0
   m_GravityFactor: 0
-  m_OverrideDefaultMassDistribution: 0
+  m_OverrideDefaultMassDistribution: 1
   m_CenterOfMass:
     x: 0
     y: 0
@@ -523,9 +523,9 @@ MonoBehaviour:
       z: 0
     RotationOrder: 4
   m_InertiaTensor:
-    x: 0.4
-    y: 0.4
-    z: 0.4
+    x: Infinity
+    y: Infinity
+    z: Infinity
   m_WorldIndex: 0
   m_CustomTags:
     Tag00: 0

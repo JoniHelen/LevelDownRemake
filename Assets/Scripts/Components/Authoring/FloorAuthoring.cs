@@ -2,6 +2,7 @@ using UnityEngine;
 using Unity.Entities;
 using Unity.Transforms;
 using Unity.Mathematics;
+using Unity.Physics;
 
 public class FloorAuthoring : MonoBehaviour { }
 
@@ -12,9 +13,9 @@ public class FloorBaker : Baker<FloorAuthoring>
         var entity = GetEntity(TransformUsageFlags.Dynamic);
 
         AddComponent<RandomValue>(entity);
+        AddComponent(entity, new PhysicsMassOverride { IsKinematic = 1 });
         AddComponent(entity, new Floor { Tall = false });
         AddComponent(entity, new PostTransformMatrix { Value = float4x4.identity });
-        AddComponent(entity, new Shrinking { Duration = 0.5f });
-        SetComponentEnabled<Shrinking>(entity, false);
+        AddComponent(entity, new Shrinking { Duration = 0.5f, Finished = true });
     }
 }

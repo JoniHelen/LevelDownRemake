@@ -2,6 +2,7 @@ using Unity.Entities;
 using Unity.Transforms;
 using Unity.Mathematics;
 using Unity.Physics;
+using Unity.Physics.Aspects;
 
 public readonly partial struct FloorBehaviourAspect : IAspect
 {
@@ -10,8 +11,8 @@ public readonly partial struct FloorBehaviourAspect : IAspect
     private readonly RefRW<PostTransformMatrix> _transform;
     private readonly RefRW<LocalTransform> _local;
     private readonly ColorFlashAspect _flash;
+    private readonly RigidBodyAspect _rigidBody;
     private readonly RefRW<PhysicsCollider> _physicsCollider;
-    private readonly RefRW<PhysicsVelocity> _velocity;
 
     public bool Tall
     {
@@ -44,19 +45,14 @@ public readonly partial struct FloorBehaviourAspect : IAspect
 
     public float3 TallScale { get => new(1, 1, 2); }
 
-    public float UniformScale
-    {
-        get => _local.ValueRO.Scale;
-        set => _local.ValueRW.Scale = value;
-    }
-
     public void Reset(FloorPhysicsBlobs blobs)
     {
         SetHeight(false, blobs);
         Scale = 1;
         Position = 0;
         Rotation = quaternion.identity;
-        _velocity.ValueRW.Linear = _velocity.ValueRW.Angular = 0;
+        _rigidBody.IsKinematic = true;
+        _rigidBody.LinearVelocity = _rigidBody.AngularVelocityLocalSpace = 0;
     }
 
     public void SetHeight(bool tall, FloorPhysicsBlobs blobs)

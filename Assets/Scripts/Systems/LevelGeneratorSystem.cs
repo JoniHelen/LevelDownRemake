@@ -38,12 +38,12 @@ public partial struct LevelGeneratorSystem : ISystem
             TallThreshold = 0.6f,
             PhysicsBlobs = SystemAPI.GetSingleton<FloorPhysicsBlobs>(),
             Noise = _noiseArray.Reinterpret<float>(16),
-            Ecb = SystemAPI.GetSingletonRW<EndSimulationEntityCommandBufferSystem.Singleton>()
-            .ValueRW.CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter()
+            Ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+            .CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter()
         }.ScheduleParallel(noiseJob);
 
-        SystemAPI.GetSingletonRW<EndSimulationEntityCommandBufferSystem.Singleton>()
-            .ValueRW.CreateCommandBuffer(state.WorldUnmanaged).RemoveComponent<GenerateLevelTriggerTag>(
+        SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+            .CreateCommandBuffer(state.WorldUnmanaged).RemoveComponent<GenerateLevelTriggerTag>(
             SystemAPI.GetSingletonEntity<TriggerTagSingleton>());
     }
 

@@ -12,14 +12,16 @@ public partial struct FloorResetJob : IJobEntity
 
     public void Execute([ChunkIndexInQuery] int key, Entity entity, ref Shrinking shrink, FloorBehaviourAspect behaviour)
     {
-        var elapsed = (float)(Time - shrink.StartTime);
+        if (shrink.Finished) return;
 
-        if (elapsed >= shrink.Duration)
+        var elapsed = (float)(Time - shrink.StartTime);
+        var finished = elapsed >= shrink.Duration;
+
+        if (finished)
         {
             Ecb.SetEnabled(key, entity, false);
-            Ecb.SetComponentEnabled<Shrinking>(key, entity, false);
-            Ecb.SetComponentEnabled<Simulate>(key, entity, false);
 
+            shrink.Finished = finished;
             behaviour.Reset(PhysicsBlobs);
         }
         else

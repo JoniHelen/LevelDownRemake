@@ -38,7 +38,7 @@ public partial struct EntityInitializationSystem : ISystem, ISystemStartStop
         collider.Value.SetCollisionFilter(new CollisionFilter
         {
             BelongsTo = 1 << 3, // TallFloor
-            CollidesWith = uint.MaxValue ^ (1 << 3), // Everything but Floor
+            CollidesWith = uint.MaxValue ^ (1 << 3), // Everything but TallFloor
             GroupIndex = 0
         });
 
@@ -63,25 +63,27 @@ public partial struct EntityInitializationSystem : ISystem, ISystemStartStop
             .ValueRW.Small = SystemAPI.GetComponent<PhysicsCollider>(prefab).Value;
 
         new RandomSeedJob().ScheduleParallel();
-        new SetSimulateJob { 
-            BoolToSet = false, 
-            Ecb = SystemAPI.GetSingletonRW<EndInitializationEntityCommandBufferSystem.Singleton>()
-            .ValueRW.CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter()
-        }.ScheduleParallel();
 
         /*state.EntityManager.AddComponent<GenerateLevelTriggerTag>(
             SystemAPI.GetSingletonEntity<TriggerTagSingleton>());*/
-    }
 
-    [BurstCompile(FloatMode = FloatMode.Fast, OptimizeFor = OptimizeFor.Performance, CompileSynchronously = true)]
-    public void OnUpdate(ref SystemState state)
-    {
-
+        state.Enabled = false;
     }
 
     [BurstCompile(FloatMode = FloatMode.Fast, OptimizeFor = OptimizeFor.Performance, CompileSynchronously = true)]
     public void OnStopRunning(ref SystemState state)
     {
         
+    }
+}
+
+[UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
+[CreateAfter(typeof(FixedStepSimulationSystemGroup))]
+public partial struct FixedStepOverrideSystem : ISystem
+{
+    public void OnCreate(ref SystemState state)
+    {
+        state.World.GetExistingSystemManaged<FixedStepSimulationSystemGroup>().Timestep = 1f / 200;
+        state.Enabled = false;
     }
 }

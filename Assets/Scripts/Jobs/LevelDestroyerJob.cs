@@ -2,19 +2,25 @@ using Unity.Entities;
 using Unity.Collections;
 using Unity.Burst;
 using Unity.Physics;
+using Unity.Physics.Aspects;
 
-[WithOptions(EntityQueryOptions.IgnoreComponentEnabledState)]
 [BurstCompile(FloatMode = FloatMode.Fast, OptimizeFor = OptimizeFor.Performance, CompileSynchronously = true)]
 public partial struct LevelDestroyerJob : IJobEntity
 {
     public double Time;
-    public Entity DestroyerSingleton;
-    public EntityCommandBuffer.ParallelWriter Ecb;
-    [ReadOnly] public NativeList<DistanceHit> Hits;
-    [ReadOnly] public DynamicBuffer<EntityBuffer> Buffer;
+    public NativeList<Entity>.ParallelWriter Entities;
+    [DeallocateOnJobCompletion]
+    [ReadOnly] public NativeArray<DistanceHit> Hits;
 
-    public void Execute([ChunkIndexInQuery] int key, Entity entity, ref Shrinking shrink, ref ColorFlash flash, ref RandomValue random)
+    public void Execute(Entity entity, ref Shrinking shrink, ref ColorFlash flash, ref RandomValue random, RigidBodyAspect rigidBody)
     {
+        unsafe
+        {
+            var data = Entities.ListData;
+            for (var i = 0; i < data->Length; i++)
+                if (data->ElementAt(i) == entity) return;
+        }
+        
         var hitEntity = Entity.Null;
 
         for (var i = 0; i < Hits.Length; i++)
@@ -26,14 +32,11 @@ public partial struct LevelDestroyerJob : IJobEntity
             }
         }
 
-        if (hitEntity == Entity.Null || Buffer.Reinterpret<Entity>().AsNativeArray().Contains(hitEntity)) return;
+        if (hitEntity == Entity.Null) return;
 
-        Ecb.AppendToBuffer(key, DestroyerSingleton, new EntityBuffer { entity = hitEntity });
-        Ecb.SetComponentEnabled<Simulate>(key, hitEntity, true);
-        Ecb.SetComponentEnabled<Shrinking>(key, hitEntity, true);
-
+        Entities.AddNoResize(hitEntity);
+        shrink.Finished = rigidBody.IsKinematic = flash.Finished = false;
         flash.StartTime = shrink.StartTime = Time;
         flash.FlashColor = UnityEngine.Color.HSVToRGB(random.Value.NextFloat(), 1, 1);
-        flash.Finished = false;
     }
 }

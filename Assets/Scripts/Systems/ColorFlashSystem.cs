@@ -9,5 +9,5 @@ public partial struct ColorFlashSystem : ISystem
 {
     [BurstCompile(FloatMode = FloatMode.Fast, OptimizeFor = OptimizeFor.Performance, CompileSynchronously = true)]
     public void OnUpdate(ref SystemState state) 
-        => new GlowUpdateJob { Time = SystemAPI.Time.ElapsedTime }.Schedule();
+        => new GlowUpdateJob { Time = SystemAPI.Time.ElapsedTime }.ScheduleParallel();
 }

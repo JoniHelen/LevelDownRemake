@@ -8,11 +8,10 @@ using Unity.Burst;
 public partial struct FloorShrinkingSystem : ISystem
 {
     [BurstCompile(FloatMode = FloatMode.Fast, OptimizeFor = OptimizeFor.Performance, CompileSynchronously = true)]
-    public void OnUpdate(ref SystemState state) => new FloorResetJob
-    {
+    public void OnUpdate(ref SystemState state) => new FloorResetJob {
         Time = SystemAPI.Time.ElapsedTime,
         PhysicsBlobs = SystemAPI.GetSingleton<FloorPhysicsBlobs>(),
-        Ecb = SystemAPI.GetSingletonRW<EndSimulationEntityCommandBufferSystem.Singleton>()
-            .ValueRW.CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter()
-    }.Schedule();
+        Ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+            .CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter()
+    }.ScheduleParallel();
 }
