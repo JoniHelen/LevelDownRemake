@@ -1,6 +1,9 @@
 using Unity.Entities;
 
-public struct EntityPrefab : IComponentData
+namespace LevelDown.Components
 {
-    public Entity Value;
+    public struct EntityPrefab : IComponentData
+    {
+        public Entity Value;
+    }
 }

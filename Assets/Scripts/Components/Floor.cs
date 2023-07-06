@@ -1,6 +1,9 @@
 using Unity.Entities;
 
-public struct Floor : IComponentData
+namespace LevelDown.Components
 {
-    public bool Tall;
+    public struct Floor : IComponentData
+    {
+        public bool Tall;
+    }
 }

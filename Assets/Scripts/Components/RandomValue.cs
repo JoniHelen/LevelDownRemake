@@ -1,7 +1,10 @@
 using Unity.Entities;
 using Unity.Mathematics;
 
-public struct RandomValue : IComponentData
+namespace LevelDown.Components
 {
-    public Random Value;
+    public struct RandomValue : IComponentData
+    {
+        public Random Value;
+    }
 }

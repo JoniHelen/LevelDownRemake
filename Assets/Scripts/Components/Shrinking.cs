@@ -1,8 +1,11 @@
 using Unity.Entities;
 
-public struct Shrinking : IComponentData
+namespace LevelDown.Components
 {
-    public double StartTime;
-    public float Duration;
-    public bool Finished;
+    public struct Shrinking : IComponentData
+    {
+        public double StartTime; 
+        public float Duration; 
+        public bool Finished;
+    }
 }

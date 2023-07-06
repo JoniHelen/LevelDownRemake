@@ -2,30 +2,34 @@ using Unity.Jobs;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Mathematics;
+using LevelDown.Noise.Vectorized;
 
-[BurstCompile(FloatMode = FloatMode.Fast, OptimizeFor = OptimizeFor.Performance, CompileSynchronously = true)]
-public struct VectorizedNoiseGenerationJob : IJobParallelFor
+namespace LevelDown.Jobs
 {
-    [WriteOnly]
-    public NativeArray<float4> ResultNoise;
-
-    public float2 Extents, Offset;
-    public float InvHeight, Scale;
-
-    public void Execute(int index)
+    [BurstCompile(FloatMode = FloatMode.Fast, OptimizeFor = OptimizeFor.Performance, CompileSynchronously = true)]
+    public struct VectorizedNoiseGenerationJob : IJobParallelFor
     {
-        int realIndex = index * 4;
+        [WriteOnly]
+        public NativeArray<float4> ResultNoise;
 
-        float4 i = new(realIndex, realIndex + 1, realIndex + 2, realIndex + 3);
-        float4 u = math.floor(InvHeight * i + 0.00001f);
-        float4 v = i - Extents.y * u;
+        public float2 Extents, Offset;
+        public float InvHeight, Scale;
 
-        u /= Extents.x > Extents.y ? Extents.y : Extents.x;
-        v /= Extents.x > Extents.y ? Extents.y : Extents.x;
+        public void Execute(int index)
+        {
+            int realIndex = index * 4;
 
-        u += Offset.x;
-        v += Offset.y;
+            float4 i = new(realIndex, realIndex + 1, realIndex + 2, realIndex + 3);
+            float4 u = math.floor(InvHeight * i + 0.00001f);
+            float4 v = i - Extents.y * u;
 
-        ResultNoise[index] = Simplex4.GetNoise4(new float4x2(u, v), Scale);
+            u /= Extents.x > Extents.y ? Extents.y : Extents.x;
+            v /= Extents.x > Extents.y ? Extents.y : Extents.x;
+
+            u += Offset.x;
+            v += Offset.y;
+
+            ResultNoise[index] = Simplex4.GetNoise4(new float4x2(u, v), Scale);
+        }
     }
 }

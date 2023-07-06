@@ -1,0 +1,19 @@
+{
+    "name": "LevelDown.MonoBehaviour",
+    "rootNamespace": "LevelDown.MonoBehaviour",
+    "references": [
+        "GUID:2665a8d13d1b3f18800f46e256720795",
+        "GUID:d8b63aba1907145bea998dd612889d6b",
+        "GUID:df35fc011cd09784c8215d5dbb982fb4",
+        "GUID:3c901f7c34d49b2418b765ad3950b582"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

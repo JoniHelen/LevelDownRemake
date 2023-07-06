@@ -2,23 +2,27 @@ using UnityEngine;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
+using LevelDown.Components.Aspects;
 
-[BurstCompile(FloatMode = FloatMode.Fast, OptimizeFor = OptimizeFor.Performance, CompileSynchronously = true)]
-public partial struct GlowUpdateJob : IJobEntity
+namespace LevelDown.Jobs
 {
-    public double Time;
-
-    public void Execute(ColorFlashAspect aspect)
+    [BurstCompile(FloatMode = FloatMode.Fast, OptimizeFor = OptimizeFor.Performance, CompileSynchronously = true)]
+    public partial struct GlowUpdateJob : IJobEntity
     {
-        if (aspect.Finished) return;
+        public double Time;
 
-        var timeSinceStart = (float)(Time - aspect.StartTime);
-        var t = timeSinceStart / aspect.Duration;
-        var finished = timeSinceStart >= aspect.Duration;
-        var baseGlow = aspect.Tall ? 0f : 1.1f;
+        public void Execute(ColorFlashAspect aspect)
+        {
+            if (aspect.Finished) return;
 
-        aspect.Color = finished ? aspect.BaseColor : Color.Lerp(aspect.FlashColor, aspect.BaseColor, t);
-        aspect.Brightness = finished ? baseGlow : math.lerp(15f, baseGlow, t);
-        aspect.Finished = finished;
+            var timeSinceStart = (float)(Time - aspect.StartTime);
+            var t = timeSinceStart / aspect.Duration;
+            var finished = timeSinceStart >= aspect.Duration;
+            var baseGlow = aspect.Tall ? 0f : 1.1f;
+
+            aspect.Color = finished ? aspect.BaseColor : Color.Lerp(aspect.FlashColor, aspect.BaseColor, t);
+            aspect.Brightness = finished ? baseGlow : math.lerp(15f, baseGlow, t);
+            aspect.Finished = finished;
+        }
     }
 }

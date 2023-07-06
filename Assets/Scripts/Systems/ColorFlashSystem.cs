@@ -1,13 +1,17 @@
 using Unity.Entities;
 using Unity.Burst;
+using LevelDown.Jobs;
 
-/// <summary>
-/// This system is responsible for updating the flashing floor tiles
-/// </summary>
-[RequireMatchingQueriesForUpdate]
-public partial struct ColorFlashSystem : ISystem
+namespace LevelDown.Systems
 {
-    [BurstCompile(FloatMode = FloatMode.Fast, OptimizeFor = OptimizeFor.Performance, CompileSynchronously = true)]
-    public void OnUpdate(ref SystemState state) 
-        => new GlowUpdateJob { Time = SystemAPI.Time.ElapsedTime }.ScheduleParallel();
+    /// <summary>
+    /// This system is responsible for updating the flashing floor tiles
+    /// </summary>
+    [RequireMatchingQueriesForUpdate]
+    public partial struct ColorFlashSystem : ISystem
+    {
+        [BurstCompile(FloatMode = FloatMode.Fast, OptimizeFor = OptimizeFor.Performance, CompileSynchronously = true)]
+        public void OnUpdate(ref SystemState state)
+            => new GlowUpdateJob { Time = SystemAPI.Time.ElapsedTime }.ScheduleParallel();
+    }
 }

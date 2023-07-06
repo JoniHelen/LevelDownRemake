@@ -4,18 +4,21 @@ using Unity.Transforms;
 using Unity.Mathematics;
 using Unity.Physics;
 
-public class FloorAuthoring : MonoBehaviour { }
-
-public class FloorBaker : Baker<FloorAuthoring>
+namespace LevelDown.Components.Authoring
 {
-    public override void Bake(FloorAuthoring authoring)
-    {
-        var entity = GetEntity(TransformUsageFlags.Dynamic);
+    public class FloorAuthoring : MonoBehaviour { }
 
-        AddComponent<RandomValue>(entity);
-        AddComponent(entity, new PhysicsMassOverride { IsKinematic = 1 });
-        AddComponent(entity, new Floor { Tall = false });
-        AddComponent(entity, new PostTransformMatrix { Value = float4x4.identity });
-        AddComponent(entity, new Shrinking { Duration = 0.5f, Finished = true });
+    public class FloorBaker : Baker<FloorAuthoring>
+    {
+        public override void Bake(FloorAuthoring authoring)
+        {
+            var entity = GetEntity(TransformUsageFlags.Dynamic);
+
+            AddComponent<RandomValue>(entity);
+            AddComponent(entity, new PhysicsMassOverride { IsKinematic = 1 });
+            AddComponent(entity, new Floor { Tall = false });
+            AddComponent(entity, new PostTransformMatrix { Value = float4x4.identity });
+            AddComponent(entity, new Shrinking { Duration = 0.5f, Finished = true });
+        }
     }
 }

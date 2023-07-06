@@ -1,8 +1,11 @@
 using Unity.Entities;
 
-public struct GameStateData : IComponentData
+namespace LevelDown.Components.Singletons
 {
-    public bool RequireNewLevel;
-    public bool RequireLevelDestruction;
-    public double DestroyTime;
+    public struct GameStateData : IComponentData
+    {
+        public bool RequireNewLevel;
+        public bool RequireLevelDestruction;
+        public double DestroyTime;
+    }
 }

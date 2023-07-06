@@ -1,25 +1,30 @@
 using Unity.Entities;
 using UnityEngine;
+using LevelDown.ScriptableObjects;
 
-public class GlowColorAuthoring : MonoBehaviour
+namespace LevelDown.Components.Authoring
 {
-    public FloorSettings floorSettings;
-    public Color color = Color.white;
-    public float value = 1f;
-}
-
-public class GlowColorBaker : Baker<GlowColorAuthoring>
-{
-    public override void Bake(GlowColorAuthoring authoring)
+    public class GlowColorAuthoring : MonoBehaviour
     {
-        var entity = GetEntity(TransformUsageFlags.Dynamic);
+        public FloorSettings floorSettings;
+        public Color color = Color.white;
+        public float value = 1f;
+    }
 
-        AddComponent(entity, new GlowColor { Color = authoring.color });
-        AddComponent(entity, new GlowBrightness { Value = authoring.value });
-        AddComponent(entity, new ColorFlash {
-            Finished = true,
-            BaseColor = Color.white,
-            Duration = 0.3f
-        });
+    public class GlowColorBaker : Baker<GlowColorAuthoring>
+    {
+        public override void Bake(GlowColorAuthoring authoring)
+        {
+            var entity = GetEntity(TransformUsageFlags.Dynamic);
+
+            AddComponent(entity, new GlowColor { Color = authoring.color });
+            AddComponent(entity, new GlowBrightness { Value = authoring.value });
+            AddComponent(entity, new ColorFlash
+            {
+                Finished = true,
+                BaseColor = Color.white,
+                Duration = 0.3f
+            });
+        }
     }
 }

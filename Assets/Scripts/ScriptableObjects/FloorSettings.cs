@@ -1,7 +1,10 @@
 using UnityEngine;
 
-[CreateAssetMenu(menuName = "LevelDown/Floor Settings", fileName = "New Floor Settings"), System.Serializable]
-public class FloorSettings : ScriptableObject
+namespace LevelDown.ScriptableObjects
 {
-    public float Duration;
+    [CreateAssetMenu(menuName = "LevelDown/Floor Settings", fileName = "New Floor Settings"), System.Serializable]
+    public class FloorSettings : ScriptableObject
+    {
+        public float Duration;
+    }
 }

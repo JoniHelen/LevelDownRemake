@@ -1,6 +1,9 @@
 using Unity.Entities;
 
-public struct EntityBuffer : IBufferElementData
+namespace LevelDown.Components
 {
-    public Entity entity;
+    public struct EntityBuffer : IBufferElementData
+    {
+        public Entity entity;
+    }
 }

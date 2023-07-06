@@ -1,14 +1,17 @@
 ﻿using Unity.Entities;
-using Unity.Physics;
 using Unity.Burst;
+using LevelDown.Components.Aspects;
 
-[UpdateAfter(typeof(PlayerInputSystem))]
-public partial struct PlayerMovementSystem : ISystem
+namespace LevelDown.Systems
 {
-    [BurstCompile(FloatMode = FloatMode.Fast, OptimizeFor = OptimizeFor.Performance, CompileSynchronously = true)]
-    public void OnUpdate(ref SystemState state)
+    [UpdateAfter(typeof(PlayerInputSystem))]
+    public partial struct PlayerMovementSystem : ISystem
     {
-        foreach (var movement in SystemAPI.Query<PlayerMovementAspect>())
-            movement.UpdateVelocity();
+        [BurstCompile(FloatMode = FloatMode.Fast, OptimizeFor = OptimizeFor.Performance, CompileSynchronously = true)]
+        public void OnUpdate(ref SystemState state)
+        {
+            foreach (var movement in SystemAPI.Query<PlayerMovementAspect>())
+                movement.UpdateVelocity();
+        }
     }
 }

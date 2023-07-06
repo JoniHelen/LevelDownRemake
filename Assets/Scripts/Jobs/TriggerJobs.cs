@@ -1,34 +1,39 @@
 using Unity.Entities;
 using Unity.Burst;
+using LevelDown.Components.Triggers;
+using LevelDown.Components.Singletons;
 
-[BurstCompile(FloatMode = FloatMode.Fast, OptimizeFor = OptimizeFor.Performance, CompileSynchronously = true)]
-public partial struct LevelGenerationTriggerJob : IJobEntity
+namespace LevelDown.Jobs.Triggers
 {
-    public Entity TriggerSingleton;
-    public EntityCommandBuffer Ecb;
-
-    public void Execute(ref TestTrigger trigger)
+    [BurstCompile(FloatMode = FloatMode.Fast, OptimizeFor = OptimizeFor.Performance, CompileSynchronously = true)]
+    public partial struct LevelGenerationTriggerJob : IJobEntity
     {
-        if (trigger.GenerateTime >= trigger.Interval)
+        public Entity TriggerSingleton;
+        public EntityCommandBuffer Ecb;
+
+        public void Execute(ref TestTrigger trigger)
         {
-            trigger.GenerateTime = 0;
-            Ecb.AddComponent<GenerateLevelTriggerTag>(TriggerSingleton);
+            if (trigger.GenerateTime >= trigger.Interval)
+            {
+                trigger.GenerateTime = 0;
+                Ecb.AddComponent<GenerateLevelTriggerTag>(TriggerSingleton);
+            }
         }
     }
-}
 
-[BurstCompile(FloatMode = FloatMode.Fast, OptimizeFor = OptimizeFor.Performance, CompileSynchronously = true)]
-public partial struct LevelDestructionTriggerJob : IJobEntity
-{
-    public Entity TriggerSingleton;
-    public EntityCommandBuffer Ecb;
-
-    public void Execute(ref TestTrigger trigger)
+    [BurstCompile(FloatMode = FloatMode.Fast, OptimizeFor = OptimizeFor.Performance, CompileSynchronously = true)]
+    public partial struct LevelDestructionTriggerJob : IJobEntity
     {
-        if (trigger.DestroyTime >= trigger.Interval)
+        public Entity TriggerSingleton;
+        public EntityCommandBuffer Ecb;
+
+        public void Execute(ref TestTrigger trigger)
         {
-            trigger.DestroyTime = 0;
-            Ecb.AddComponent<DestroyLevelTriggerTag>(TriggerSingleton);
+            if (trigger.DestroyTime >= trigger.Interval)
+            {
+                trigger.DestroyTime = 0;
+                Ecb.AddComponent<DestroyLevelTriggerTag>(TriggerSingleton);
+            }
         }
     }
 }

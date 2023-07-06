@@ -1,9 +1,12 @@
 using Unity.Entities;
 using Unity.Mathematics;
 
-public struct PlayerInput : IComponentData, IEnableableComponent
+namespace LevelDown.Components.Singletons
 {
-    public float InputLength;
-    public float MovementSpeed;
-    public float2 MovementDirection;
+    public struct PlayerInput : IComponentData, IEnableableComponent
+    {
+        public float InputLength;
+        public float MovementSpeed;
+        public float2 MovementDirection;
+    }
 }

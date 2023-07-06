@@ -1,5 +1,8 @@
 using Unity.Entities;
 
-public struct TriggerTagSingleton : IComponentData { }
-public struct GenerateLevelTriggerTag : IComponentData { }
-public struct DestroyLevelTriggerTag : IComponentData { }
+namespace LevelDown.Components.Triggers
+{
+    public struct TriggerTagSingleton : IComponentData { }
+    public struct GenerateLevelTriggerTag : IComponentData { }
+    public struct DestroyLevelTriggerTag : IComponentData { }
+}

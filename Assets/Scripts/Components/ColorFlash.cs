@@ -1,11 +1,14 @@
 using UnityEngine;
 using Unity.Entities;
 
-public struct ColorFlash : IComponentData
+namespace LevelDown.Components
 {
-    public Color FlashColor;
-    public Color BaseColor;
-    public float Duration;
-    public double StartTime;
-    public bool Finished;
+    public struct ColorFlash : IComponentData
+    {
+        public Color FlashColor;
+        public Color BaseColor;
+        public float Duration;
+        public double StartTime;
+        public bool Finished;
+    }
 }

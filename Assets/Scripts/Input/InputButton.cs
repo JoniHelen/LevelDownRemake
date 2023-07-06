@@ -1,6 +1,9 @@
-public struct InputButton
+namespace LevelDown.Input
 {
-    public bool IsPressed;
-    public bool WasPressedThisFrame;
-    public bool WasReleasedThisFrame;
+    public struct InputButton
+    {
+        public bool IsPressed;
+        public bool WasPressedThisFrame;
+        public bool WasReleasedThisFrame;
+    }
 }

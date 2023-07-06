@@ -1,8 +1,11 @@
 using Unity.Entities;
 using Unity.Physics;
 
-public struct FloorPhysicsBlobs : IComponentData
+namespace LevelDown.Components.Singletons
 {
-    public BlobAssetReference<Collider> Small;
-    public BlobAssetReference<Collider> Tall;
+    public struct FloorPhysicsBlobs : IComponentData
+    {
+        public BlobAssetReference<Collider> Small;
+        public BlobAssetReference<Collider> Tall;
+    }
 }

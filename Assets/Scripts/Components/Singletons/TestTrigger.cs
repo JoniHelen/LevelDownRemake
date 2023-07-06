@@ -1,8 +1,11 @@
 using Unity.Entities;
 
-public struct TestTrigger : IComponentData
+namespace LevelDown.Components.Singletons
 {
-    public double Interval;
-    public double GenerateTime;
-    public double DestroyTime;
+    public struct TestTrigger : IComponentData
+    {
+        public double Interval;
+        public double GenerateTime;
+        public double DestroyTime;
+    }
 }

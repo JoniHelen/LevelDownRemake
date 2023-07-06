@@ -1,16 +1,20 @@
 using Unity.Entities;
 using Unity.Mathematics;
 using static UnityEngine.Input;
+using LevelDown.Components.Singletons;
 
-public partial class PlayerInputSystem : SystemBase
+namespace LevelDown.Systems
 {
-    protected override void OnUpdate()
+    public partial class PlayerInputSystem : SystemBase
     {
-        foreach (var input in SystemAPI.Query<RefRW<PlayerInput>>())
+        protected override void OnUpdate()
         {
-            float2 movementInput = new(GetAxisRaw("Horizontal"), GetAxisRaw("Vertical"));
-            input.ValueRW.InputLength = math.clamp(math.length(movementInput), 0, 1);
-            input.ValueRW.MovementDirection = math.normalizesafe(movementInput);
+            foreach (var input in SystemAPI.Query<RefRW<PlayerInput>>())
+            {
+                float2 movementInput = new(GetAxisRaw("Horizontal"), GetAxisRaw("Vertical"));
+                input.ValueRW.InputLength = math.clamp(math.length(movementInput), 0, 1);
+                input.ValueRW.MovementDirection = math.normalizesafe(movementInput);
+            }
         }
     }
 }

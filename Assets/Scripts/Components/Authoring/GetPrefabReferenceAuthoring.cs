@@ -1,17 +1,20 @@
 using Unity.Entities;
 using UnityEngine;
 
-public class GetPrefabAuthoring : MonoBehaviour
+namespace LevelDown.Components.Authoring
 {
-    public GameObject Prefab;
-}
-
-public class GetPrefabBaker : Baker<GetPrefabAuthoring>
-{
-    public override void Bake(GetPrefabAuthoring authoring)
+    public class GetPrefabAuthoring : MonoBehaviour
     {
-        var entity = GetEntity(TransformUsageFlags.Dynamic);
-        var entityPrefab = GetEntity(authoring.Prefab, TransformUsageFlags.Dynamic);
-        AddComponent(entity, new EntityPrefab { Value = entityPrefab });
+        public GameObject Prefab;
+    }
+
+    public class GetPrefabBaker : Baker<GetPrefabAuthoring>
+    {
+        public override void Bake(GetPrefabAuthoring authoring)
+        {
+            var entity = GetEntity(TransformUsageFlags.Dynamic);
+            var entityPrefab = GetEntity(authoring.Prefab, TransformUsageFlags.Dynamic);
+            AddComponent(entity, new EntityPrefab { Value = entityPrefab });
+        }
     }
 }

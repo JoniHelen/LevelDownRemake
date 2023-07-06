@@ -1,20 +1,24 @@
 using UnityEngine;
 using Unity.Entities;
+using LevelDown.Components.Singletons;
 
-public class PlayerInputAuthoring : MonoBehaviour
+namespace LevelDown.Components.Authoring
 {
-    public float MovementSpeed;
-}
-
-public class PlayerInputBaker : Baker<PlayerInputAuthoring>
-{
-    public override void Bake(PlayerInputAuthoring authoring)
+    public class PlayerInputAuthoring : MonoBehaviour
     {
-        var entity = GetEntity(TransformUsageFlags.Dynamic);
+        public float MovementSpeed;
+    }
 
-        AddComponent(entity, new PlayerInput
+    public class PlayerInputBaker : Baker<PlayerInputAuthoring>
+    {
+        public override void Bake(PlayerInputAuthoring authoring)
         {
-            MovementSpeed = authoring.MovementSpeed
-        });
+            var entity = GetEntity(TransformUsageFlags.Dynamic);
+
+            AddComponent(entity, new PlayerInput
+            {
+                MovementSpeed = authoring.MovementSpeed
+            });
+        }
     }
 }
