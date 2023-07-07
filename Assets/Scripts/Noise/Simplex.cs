@@ -27,6 +27,23 @@ namespace LevelDown.Noise
 					Kernel(hC.Eat(zC), xC, zC, x, y);
 		}
 
+		public static float GetNoise(float2 coords, SmallXXHash hash, float scale)
+		{
+			return GetNoise(coords.x, coords.y, hash, scale);
+		}
+
+		public static float GetNoise(float x, float y, float scale)
+		{
+			SmallXXHash hash = SmallXXHash.Seed(756284);
+			return GetNoise(x, y, hash, scale);
+		}
+
+		public static float GetNoise(float2 coords, float scale)
+		{
+			SmallXXHash hash = SmallXXHash.Seed(756284);
+			return GetNoise(coords.x, coords.y, hash, scale);
+		}
+
 		private static float2 SquareVector(SmallXXHash hash)
 		{
 			float2 v;

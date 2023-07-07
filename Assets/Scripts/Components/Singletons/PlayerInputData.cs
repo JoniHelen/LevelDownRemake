@@ -3,7 +3,7 @@ using Unity.Mathematics;
 
 namespace LevelDown.Components.Singletons
 {
-    public struct PlayerInput : IComponentData, IEnableableComponent
+    public struct PlayerInputData : IComponentData, IEnableableComponent
     {
         public float InputLength;
         public float MovementSpeed;

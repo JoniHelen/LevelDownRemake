@@ -29,14 +29,24 @@ namespace LevelDown.Systems
         [BurstCompile(FloatMode = FloatMode.Fast, OptimizeFor = OptimizeFor.Performance, CompileSynchronously = true)]
         public void OnUpdate(ref SystemState state)
         {
+            NativeReference<float2> Offset = new(Allocator.TempJob);
+
+            JobHandle offsetJob = new NoiseOffsetJob
+            {
+                Extents = _dimensions,
+                Threshold = 0.6f,
+                Scale = 4,
+                Offset = Offset
+            }.Schedule(state.Dependency);
+
             JobHandle noiseJob = new VectorizedNoiseGenerationJob
             {
                 ResultNoise = _noiseArray,
                 Extents = _dimensions,
                 InvHeight = 1 / _dimensions.y,
-                Offset = (float)SystemAPI.Time.ElapsedTime,
+                Offset = Offset,
                 Scale = 4
-            }.Schedule(_noiseArray.Length, 4, state.Dependency);
+            }.Schedule(_noiseArray.Length, 4, offsetJob);
 
             state.Dependency = new LevelGenerationJob
             {
@@ -44,7 +54,7 @@ namespace LevelDown.Systems
                 InvHeight = 1 / _dimensions.y,
                 TallThreshold = 0.6f,
                 PhysicsBlobs = SystemAPI.GetSingleton<FloorPhysicsBlobs>(),
-                Noise = _noiseArray.Reinterpret<float>(16),
+                Noise = _noiseArray.Reinterpret<float>(sizeof(float) * 4),
                 Ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter()
             }.ScheduleParallel(noiseJob);

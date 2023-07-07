@@ -39,7 +39,7 @@ public class NoiseVisualizer : MonoBehaviour
             ResultNoise = noiseVectors,
             Extents = resolution,
             InvHeight = 1f / resolution.y,
-            Offset = 0,
+            Offset = new NativeReference<float2>(Time.time, Allocator.TempJob),
             Scale = 3
         }.Schedule(noiseVectors.Length, 8).Complete();
 

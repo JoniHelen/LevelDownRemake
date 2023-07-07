@@ -2,7 +2,6 @@ using Unity.Entities;
 using Unity.Physics;
 using Unity.Burst;
 using Unity.Collections;
-using Unity.Jobs;
 using LevelDown.Components.Triggers;
 using LevelDown.Components.Singletons;
 using LevelDown.Jobs;
@@ -54,15 +53,10 @@ namespace LevelDown.Systems
 
             if (timeSinceStart < destroyerData.ValueRO.Duration)
             {
-                NativeArray<DistanceHit> distanceHits = new(576, Allocator.TempJob);
+                NativeList<DistanceHit> distanceHits = new(Allocator.TempJob);
 
-                state.Dependency = new OverlapSphereJob
-                {
-                    TimeSinceStart = timeSinceStart,
-                    CollisionWorld = SystemAPI.GetSingleton<PhysicsWorldSingleton>().CollisionWorld,
-                    Hits = distanceHits,
-                    DestroyerData = destroyerData.ValueRO
-                }.Schedule(state.Dependency);
+                _ = SystemAPI.GetSingleton<PhysicsWorldSingleton>().CollisionWorld.OverlapSphere(
+                    0, destroyerData.ValueRO.TargetRadius * (timeSinceStart / destroyerData.ValueRO.Duration), ref distanceHits, CollisionFilter.Default);
 
                 state.Dependency = new LevelDestroyerJob
                 {

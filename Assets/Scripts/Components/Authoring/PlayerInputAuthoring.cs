@@ -15,7 +15,7 @@ namespace LevelDown.Components.Authoring
         {
             var entity = GetEntity(TransformUsageFlags.Dynamic);
 
-            AddComponent(entity, new PlayerInput
+            AddComponent(entity, new PlayerInputData
             {
                 MovementSpeed = authoring.MovementSpeed
             });

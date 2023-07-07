@@ -12,8 +12,7 @@ namespace LevelDown.Jobs
     {
         public double Time;
         public NativeList<Entity>.ParallelWriter Entities;
-        [DeallocateOnJobCompletion]
-        [ReadOnly] public NativeArray<DistanceHit> Hits;
+        [ReadOnly] public NativeList<DistanceHit> Hits;
 
         public void Execute(Entity entity, ref Shrinking shrink, ref ColorFlash flash, ref RandomValue random, RigidBodyAspect rigidBody)
         {

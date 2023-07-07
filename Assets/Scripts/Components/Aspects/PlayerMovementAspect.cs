@@ -6,10 +6,10 @@ using LevelDown.Components.Singletons;
 
 namespace LevelDown.Components.Aspects
 {
-    public readonly partial struct PlayerMovementAspect : IAspect
+    public readonly partial struct PlayerControlAspect : IAspect
     {
         private readonly RefRW<LocalTransform> _transform;
-        private readonly RefRW<PlayerInput> _playerInput;
+        private readonly RefRW<PlayerInputData> _playerInput;
         private readonly RefRW<PhysicsVelocity> _velocity;
 
         public float2 MovementDirection
