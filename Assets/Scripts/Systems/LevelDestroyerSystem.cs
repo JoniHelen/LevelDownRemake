@@ -1,7 +1,9 @@
 using Unity.Entities;
 using Unity.Physics;
 using Unity.Burst;
+using Unity.Jobs;
 using Unity.Collections;
+using LevelDown.Components;
 using LevelDown.Components.Triggers;
 using LevelDown.Components.Singletons;
 using LevelDown.Jobs;
@@ -14,12 +16,17 @@ namespace LevelDown.Systems
     public partial struct LevelDestroyerSystem : ISystem, ISystemStartStop
     {
         private NativeList<Entity> _entities;
+        private ComponentLookup<Shrinking> _shrinkingLookup;
+        private ComponentLookup<ColorFlash> _flashLookup;
 
         [BurstCompile(FloatMode = FloatMode.Fast, OptimizeFor = OptimizeFor.Performance, CompileSynchronously = true)]
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<DestroyLevelTriggerTag>();
-            _entities = new(576, Allocator.Persistent);
+            _entities = new(600, Allocator.Persistent);
+
+            _shrinkingLookup = state.GetComponentLookup<Shrinking>();
+            _flashLookup = state.GetComponentLookup<ColorFlash>();
         }
 
         [BurstCompile(FloatMode = FloatMode.Fast, OptimizeFor = OptimizeFor.Performance, CompileSynchronously = true)]
@@ -58,12 +65,18 @@ namespace LevelDown.Systems
                 _ = SystemAPI.GetSingleton<PhysicsWorldSingleton>().CollisionWorld.OverlapSphere(
                     0, destroyerData.ValueRO.TargetRadius * (timeSinceStart / destroyerData.ValueRO.Duration), ref distanceHits, CollisionFilter.Default);
 
-                state.Dependency = new LevelDestroyerJob
-                {
+                _shrinkingLookup.Update(ref state);
+                _flashLookup.Update(ref state);
+
+                JobHandle destroyerHandle = new LevelDestroyerJob {
                     Time = SystemAPI.Time.ElapsedTime,
                     Hits = distanceHits,
+                    FlashLookup = _flashLookup,
+                    ShrinkingLookup = _shrinkingLookup,
                     Entities = _entities.AsParallelWriter()
                 }.ScheduleParallel(state.Dependency);
+
+                state.Dependency = distanceHits.Dispose(destroyerHandle);
             }
             else
             {

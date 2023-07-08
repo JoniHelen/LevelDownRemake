@@ -16,9 +16,7 @@ namespace LevelDown.Jobs
         public float TallThreshold;
         public FloorPhysicsBlobs PhysicsBlobs;
         public EntityCommandBuffer.ParallelWriter Ecb;
-
-        [ReadOnly]
-        public NativeArray<float> Noise;
+        [ReadOnly] public NativeArray<float> Noise;
 
         public void Execute([ChunkIndexInQuery] int key, [EntityIndexInQuery] int entityIndex, Entity entity, FloorBehaviourAspect behaviour)
         {

@@ -1,5 +1,6 @@
 using Unity.Entities;
 using Unity.Burst;
+using Unity.Collections;
 using Unity.Mathematics;
 using LevelDown.Components;
 using LevelDown.Components.Singletons;
@@ -7,16 +8,19 @@ using LevelDown.Components.Aspects;
 
 namespace LevelDown.Jobs
 {
+    [WithAll(typeof(Shrinking))]
     [BurstCompile(FloatMode = FloatMode.Fast, OptimizeFor = OptimizeFor.Performance, CompileSynchronously = true)]
     public partial struct FloorResetJob : IJobEntity
     {
         public double Time;
         public FloorPhysicsBlobs PhysicsBlobs;
+        [NativeDisableParallelForRestriction]
+        public ComponentLookup<Shrinking> ShrinkingComponents;
         public EntityCommandBuffer.ParallelWriter Ecb;
 
-        public void Execute([ChunkIndexInQuery] int key, Entity entity, ref Shrinking shrink, FloorBehaviourAspect behaviour)
+        public void Execute([ChunkIndexInQuery] int key, Entity entity, FloorBehaviourAspect behaviour)
         {
-            if (shrink.Finished) return;
+            var shrink = ShrinkingComponents[entity];
 
             var elapsed = (float)(Time - shrink.StartTime);
             var finished = elapsed >= shrink.Duration;
@@ -24,8 +28,7 @@ namespace LevelDown.Jobs
             if (finished)
             {
                 Ecb.SetEnabled(key, entity, false);
-
-                shrink.Finished = finished;
+                ShrinkingComponents.SetComponentEnabled(entity, false);
                 behaviour.Reset(PhysicsBlobs);
             }
             else

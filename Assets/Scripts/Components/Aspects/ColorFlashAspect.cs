@@ -47,12 +47,6 @@ namespace LevelDown.Components.Aspects
             set => _flash.ValueRW.StartTime = value;
         }
 
-        public bool Finished
-        {
-            get => _flash.ValueRO.Finished;
-            set => _flash.ValueRW.Finished = value;
-        }
-
         public bool Tall
         {
             get => _floor.ValueRO.Tall;

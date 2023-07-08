@@ -90,8 +90,14 @@ namespace LevelDown.Systems
     {
         public void OnCreate(ref SystemState state)
         {
-            state.World.GetExistingSystemManaged<FixedStepSimulationSystemGroup>().Timestep = 1f / 200;
+            state.World.GetExistingSystemManaged<FixedStepSimulationSystemGroup>().Timestep = 1f / 144;
             state.Enabled = false;
+
+            System.Collections.Generic.List<UnityEngine.DisplayInfo> displays = new();
+            UnityEngine.Screen.GetDisplayLayout(displays);
+
+            foreach (var display in displays)
+                UnityEngine.Debug.Log(display.workArea);
         }
     }
 }

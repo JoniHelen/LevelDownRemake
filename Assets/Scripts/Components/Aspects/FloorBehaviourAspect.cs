@@ -13,14 +13,15 @@ namespace LevelDown.Components.Aspects
 
         private readonly RefRW<PostTransformMatrix> _transform;
         private readonly RefRW<LocalTransform> _local;
-        private readonly ColorFlashAspect _flash;
+        private readonly RefRW<Floor> _floor;
+        private readonly RefRW<GlowBrightness> _brightness;
         private readonly RigidBodyAspect _rigidBody;
         private readonly RefRW<PhysicsCollider> _physicsCollider;
 
         public bool Tall
         {
-            get => _flash.Tall;
-            set => _flash.Tall = value;
+            get => _floor.ValueRO.Tall;
+            set => _floor.ValueRW.Tall = value;
         }
 
         public float3 Position
@@ -63,7 +64,7 @@ namespace LevelDown.Components.Aspects
             if (Tall == tall) return;
 
             Tall = tall;
-            _flash.Brightness = tall ? 0 : 1.1f;
+            _brightness.ValueRW.Value = tall ? 0 : 1.1f;
             Scale = tall ? TallScale : 1;
             Position += tall ? new float3(0, 0, -0.5f) : new(0, 0, 0.5f);
             _physicsCollider.ValueRW.Value = tall ? blobs.Tall : blobs.Small;

@@ -2,10 +2,9 @@ using Unity.Entities;
 
 namespace LevelDown.Components
 {
-    public struct Shrinking : IComponentData
+    public struct Shrinking : IComponentData, IEnableableComponent
     {
         public double StartTime; 
-        public float Duration; 
-        public bool Finished;
+        public float Duration;
     }
 }

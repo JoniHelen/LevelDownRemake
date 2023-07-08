@@ -10,7 +10,7 @@ using LevelDown.Components.Singletons;
 namespace LevelDown.Jobs
 {
     [WithAll(typeof(PlayerInputData))]
-    //[BurstCompile(FloatMode = FloatMode.Fast, OptimizeFor = OptimizeFor.Performance, CompileSynchronously = true)]
+    [BurstCompile(FloatMode = FloatMode.Fast, OptimizeFor = OptimizeFor.Performance, CompileSynchronously = true)]
     public partial struct NoiseOffsetJob : IJobEntity
     {
         public NativeReference<float2> Offset;
@@ -21,15 +21,14 @@ namespace LevelDown.Jobs
         public void Execute(ref LocalTransform local)
         {
             float2 offset = 0;
-            float2 playerPosition = local.Position.xy + new float2(Extents.x / 2 - 0.5f, Extents.y / 2 - 0.5f);
+            var playerPosition = local.Position.xy + new float2(Extents.x / 2 - 0.5f, Extents.y / 2 - 0.5f);
             var texelSize = 1f / Extents;
+            var normalizedTexelSize = texelSize.x > texelSize.y ? texelSize.x : texelSize.y;
 
             for (var i = 0; i < 100; i++)
             {
-                if (i == 99) UnityEngine.Debug.Log($"OFFSET FAILED WITH OFFSET: {offset}, POSITION: {playerPosition}, TEXELSIZE: {texelSize}");
-
-                if (PlayerOverlapsLevel(playerPosition, offset, texelSize))
-                    offset += texelSize;
+                if (PlayerOverlapsLevel(playerPosition, offset, normalizedTexelSize))
+                    offset += normalizedTexelSize;
                 else
                     break;
             }
@@ -37,56 +36,50 @@ namespace LevelDown.Jobs
             Offset.Value = offset;
         }
 
-        private bool PlayerOverlapsLevel(float2 position, float2 offset, float2 texelSize)
+        private bool PlayerOverlapsLevel(float2 position, float2 offset, float normalizedTexelSize)
         {
-            var playerTexel = math.floor(position) * texelSize + offset;
+            var playerTexel = math.floor(position) * normalizedTexelSize + offset;
 
-            if (Simplex.GetNoise(playerTexel, Scale) >= Threshold) return true;
+            if ((Simplex.GetNoise(playerTexel, Scale) + 1) / 2 >= Threshold) return true;
 
             var u1 = new float4
             {
-                x = playerTexel.x - texelSize.x,
-                y = playerTexel.x - texelSize.x,
+                x = playerTexel.x - normalizedTexelSize,
+                y = playerTexel.x - normalizedTexelSize,
                 z = playerTexel.x,
-                w = playerTexel.x + texelSize.x
+                w = playerTexel.x + normalizedTexelSize
             };
 
             var u2 = new float4
             {
-                x = playerTexel.x + texelSize.x,
-                y = playerTexel.x + texelSize.x,
+                x = playerTexel.x + normalizedTexelSize,
+                y = playerTexel.x + normalizedTexelSize,
                 z = playerTexel.x,
-                w = playerTexel.x - texelSize.x
+                w = playerTexel.x - normalizedTexelSize
             };
 
             var v1 = new float4
             {
                 x = playerTexel.y,
-                y = playerTexel.y + texelSize.y,
-                z = playerTexel.y + texelSize.y,
-                w = playerTexel.y + texelSize.y
+                y = playerTexel.y + normalizedTexelSize,
+                z = playerTexel.y + normalizedTexelSize,
+                w = playerTexel.y + normalizedTexelSize
             };
 
             var v2 = new float4
             {
                 x = playerTexel.y,
-                y = playerTexel.y - texelSize.y,
-                z = playerTexel.y - texelSize.y,
-                w = playerTexel.y - texelSize.y
+                y = playerTexel.y - normalizedTexelSize,
+                z = playerTexel.y - normalizedTexelSize,
+                w = playerTexel.y - normalizedTexelSize
             };
 
-            NativeArray<float4> values = new(2, Allocator.Temp);
-            values[0] = Simplex4.GetNoise4(new float4x2(u1, v1), Scale);
-            values[1] = Simplex4.GetNoise4(new float4x2(u2, v2), Scale);
+            var values1 = (Simplex4.GetNoise4(new float4x2(u1, v1), Scale) + 1) / 2;
+            var values2 = (Simplex4.GetNoise4(new float4x2(u2, v2), Scale) + 1) / 2;
 
-            foreach (var value in values.Reinterpret<float>(sizeof(float) * 4))
-                if (value >= Threshold)
-                {
-                    values.Dispose();
-                    return true;
-                }
+            for (var i = 0; i < 4; i++)
+                if (values1[i] >= Threshold || values2[i] >= Threshold) return true;
 
-            values.Dispose();
             return false;
         }
     }

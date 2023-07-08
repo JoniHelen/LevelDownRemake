@@ -11,10 +11,14 @@ namespace LevelDown.Jobs
     public partial struct LevelDestroyerJob : IJobEntity
     {
         public double Time;
+        [NativeDisableParallelForRestriction]
+        public ComponentLookup<Shrinking> ShrinkingLookup;
+        [NativeDisableParallelForRestriction]
+        public ComponentLookup<ColorFlash> FlashLookup;
         public NativeList<Entity>.ParallelWriter Entities;
         [ReadOnly] public NativeList<DistanceHit> Hits;
 
-        public void Execute(Entity entity, ref Shrinking shrink, ref ColorFlash flash, ref RandomValue random, RigidBodyAspect rigidBody)
+        public void Execute(Entity entity, ref RandomValue random, RigidBodyAspect rigidBody)
         {
             unsafe
             {
@@ -36,10 +40,15 @@ namespace LevelDown.Jobs
 
             if (hitEntity == Entity.Null) return;
 
+            var shrink = ShrinkingLookup.GetRefRW(hitEntity);
+            var flash = FlashLookup.GetRefRW(hitEntity);
+
             Entities.AddNoResize(hitEntity);
-            shrink.Finished = rigidBody.IsKinematic = flash.Finished = false;
-            flash.StartTime = shrink.StartTime = Time;
-            flash.FlashColor = UnityEngine.Color.HSVToRGB(random.Value.NextFloat(), 1, 1);
+            rigidBody.IsKinematic = false;
+            flash.ValueRW.StartTime = shrink.ValueRW.StartTime = Time;
+            flash.ValueRW.FlashColor = UnityEngine.Color.HSVToRGB(random.Value.NextFloat(), 1, 1);
+            ShrinkingLookup.SetComponentEnabled(hitEntity, true);
+            FlashLookup.SetComponentEnabled(hitEntity, true);
         }
     }
 }

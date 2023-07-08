@@ -48,6 +48,8 @@ namespace LevelDown.Systems
                 Scale = 4
             }.Schedule(_noiseArray.Length, 4, offsetJob);
 
+            JobHandle dispose = Offset.Dispose(noiseJob);
+
             state.Dependency = new LevelGenerationJob
             {
                 Extents = _dimensions,
@@ -57,7 +59,7 @@ namespace LevelDown.Systems
                 Noise = _noiseArray.Reinterpret<float>(sizeof(float) * 4),
                 Ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter()
-            }.ScheduleParallel(noiseJob);
+            }.ScheduleParallel(dispose);
 
             SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged).RemoveComponent<GenerateLevelTriggerTag>(

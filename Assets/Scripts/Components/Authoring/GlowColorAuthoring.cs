@@ -21,10 +21,10 @@ namespace LevelDown.Components.Authoring
             AddComponent(entity, new GlowBrightness { Value = authoring.value });
             AddComponent(entity, new ColorFlash
             {
-                Finished = true,
                 BaseColor = Color.white,
                 Duration = 0.3f
             });
+            SetComponentEnabled<ColorFlash>(entity, false);
         }
     }
 }

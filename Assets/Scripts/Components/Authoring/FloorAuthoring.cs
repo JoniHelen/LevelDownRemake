@@ -18,7 +18,8 @@ namespace LevelDown.Components.Authoring
             AddComponent(entity, new PhysicsMassOverride { IsKinematic = 1 });
             AddComponent(entity, new Floor { Tall = false });
             AddComponent(entity, new PostTransformMatrix { Value = float4x4.identity });
-            AddComponent(entity, new Shrinking { Duration = 0.5f, Finished = true });
+            AddComponent(entity, new Shrinking { Duration = 0.5f });
+            SetComponentEnabled<Shrinking>(entity, false);
         }
     }
 }
