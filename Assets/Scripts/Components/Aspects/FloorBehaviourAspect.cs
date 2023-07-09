@@ -7,6 +7,9 @@ using LevelDown.Components.Singletons;
 
 namespace LevelDown.Components.Aspects
 {
+    /// <summary>
+    /// This aspect contains components and methods needed to control the floor tiles' behaviour.
+    /// </summary>
     public readonly partial struct FloorBehaviourAspect : IAspect
     {
         public readonly Entity Self;
@@ -49,16 +52,49 @@ namespace LevelDown.Components.Aspects
 
         public float3 TallScale { get => new(1, 1, 2); }
 
+        /// <summary>
+        /// Resets the floor tile for later use.
+        /// </summary>
+        /// <param name="blobs">Small and Tall colliders</param>
         public void Reset(FloorPhysicsBlobs blobs)
         {
             SetHeight(false, blobs);
             Scale = 1;
-            Position = 0;
+            Position = new(0, 0, 35);
             Rotation = quaternion.identity;
             _rigidBody.IsKinematic = true;
             _rigidBody.LinearVelocity = _rigidBody.AngularVelocityLocalSpace = 0;
         }
 
+        /// <summary>
+        /// Initializes the floor tile on level creation.
+        /// </summary>
+        /// <param name="Tall">Should the tile be Tall</param>
+        /// <param name="position">The world position of the tile</param>
+        /// <param name="blobs">Small and Tall colliders</param>
+        public void Initialize(bool Tall, float2 position, FloorPhysicsBlobs blobs)
+        {
+            Position = new(position, 35);
+            SetHeight(Tall, blobs);
+            _rigidBody.IsKinematic = false;
+            _rigidBody.GravityFactor = -1;
+        }
+
+        /// <summary>
+        /// Stops the floor tile from falling towards the screen and prepares it for destruction.
+        /// </summary>
+        public void Stop()
+        {
+            _rigidBody.IsKinematic = true;
+            _rigidBody.LinearVelocity = _rigidBody.AngularVelocityLocalSpace = 0;
+            _rigidBody.GravityFactor = 5;
+        }
+
+        /// <summary>
+        /// Sets the height of the floor tile.
+        /// </summary>
+        /// <param name="tall">The height of the tile</param>
+        /// <param name="blobs">Small and Tall colliders</param>
         public void SetHeight(bool tall, FloorPhysicsBlobs blobs)
         {
             if (Tall == tall) return;

@@ -6,20 +6,20 @@ using LevelDown.Components;
 namespace LevelDown.Systems
 {
     /// <summary>
-    /// This system is responsible for updating the flashing floor tiles
+    /// This system is responsible for updating the flashing floor tiles.
     /// </summary>
     [RequireMatchingQueriesForUpdate]
     public partial struct ColorFlashSystem : ISystem
     {
         private ComponentLookup<ColorFlash> _flashLookup;
 
-        [BurstCompile(FloatMode = FloatMode.Fast, OptimizeFor = OptimizeFor.Performance, CompileSynchronously = true)]
+        [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
             _flashLookup = state.GetComponentLookup<ColorFlash>();
         }
 
-        [BurstCompile(FloatMode = FloatMode.Fast, OptimizeFor = OptimizeFor.Performance, CompileSynchronously = true)]
+        [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
             _flashLookup.Update(ref state);

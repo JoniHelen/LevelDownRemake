@@ -9,8 +9,10 @@ using LevelDown.Components.Singletons;
 
 namespace LevelDown.Jobs
 {
-    [WithAll(typeof(PlayerInputData))]
-    [BurstCompile(FloatMode = FloatMode.Fast, OptimizeFor = OptimizeFor.Performance, CompileSynchronously = true)]
+    /// <summary>
+    /// Finds an appropriate offset for level noise where the player isn't in a wall.
+    /// </summary>
+    [BurstCompile, WithAll(typeof(PlayerInputData))]
     public partial struct NoiseOffsetJob : IJobEntity
     {
         public NativeReference<float2> Offset;
@@ -20,11 +22,14 @@ namespace LevelDown.Jobs
 
         public void Execute(ref LocalTransform local)
         {
-            float2 offset = 0;
+            float2 offset = Offset.Value;
+            // the player's position in "noise space"
             var playerPosition = local.Position.xy + new float2(Extents.x / 2 - 0.5f, Extents.y / 2 - 0.5f);
             var texelSize = 1f / Extents;
+            // The "noise space" size of one tile.
             var normalizedTexelSize = texelSize.x > texelSize.y ? texelSize.x : texelSize.y;
 
+            // Safeguard for infinite loops
             for (var i = 0; i < 100; i++)
             {
                 if (PlayerOverlapsLevel(playerPosition, offset, normalizedTexelSize))
@@ -36,12 +41,21 @@ namespace LevelDown.Jobs
             Offset.Value = offset;
         }
 
+        /// <summary>
+        /// Evaluates noise around the player and determines if the player is too close to a wall or inside.
+        /// </summary>
+        /// <param name="position">The player's position in "noise space"</param>
+        /// <param name="offset">Current noise offset</param>
+        /// <param name="normalizedTexelSize">The "noise space" size of one tile.</param>
+        /// <returns><see langword="true"/> if the player is too close to a wall or inside.</returns>
         private bool PlayerOverlapsLevel(float2 position, float2 offset, float normalizedTexelSize)
         {
             var playerTexel = math.floor(position) * normalizedTexelSize + offset;
 
+            // Early return if the player is in a wall.
             if ((Simplex.GetNoise(playerTexel, Scale) + 1) / 2 >= Threshold) return true;
 
+            // Check the 8 surrounding tiles
             var u1 = new float4
             {
                 x = playerTexel.x - normalizedTexelSize,
@@ -80,6 +94,7 @@ namespace LevelDown.Jobs
             for (var i = 0; i < 4; i++)
                 if (values1[i] >= Threshold || values2[i] >= Threshold) return true;
 
+            // There were no tiles
             return false;
         }
     }

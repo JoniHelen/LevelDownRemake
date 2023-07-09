@@ -8,27 +8,33 @@ using LevelDown.Components.Aspects;
 
 namespace LevelDown.Jobs
 {
-    [WithAll(typeof(Shrinking))]
-    [BurstCompile(FloatMode = FloatMode.Fast, OptimizeFor = OptimizeFor.Performance, CompileSynchronously = true)]
+    /// <summary>
+    /// Shrinks and resets floor tiles that have been "destroyed".
+    /// </summary>
+    [BurstCompile, WithAll(typeof(Shrinking), typeof(Initialized))]
     public partial struct FloorResetJob : IJobEntity
     {
         public double Time;
         public FloorPhysicsBlobs PhysicsBlobs;
         [NativeDisableParallelForRestriction]
-        public ComponentLookup<Shrinking> ShrinkingComponents;
+        public ComponentLookup<Shrinking> ShrinkingLookup;
+        [NativeDisableParallelForRestriction]
+        public ComponentLookup<Initialized> InitializedLookup;
         public EntityCommandBuffer.ParallelWriter Ecb;
 
         public void Execute([ChunkIndexInQuery] int key, Entity entity, FloorBehaviourAspect behaviour)
         {
-            var shrink = ShrinkingComponents[entity];
+            var shrink = ShrinkingLookup[entity];
 
             var elapsed = (float)(Time - shrink.StartTime);
-            var finished = elapsed >= shrink.Duration;
+            var finished = elapsed >= shrink.Duration; // Is the "Animation" finished?
 
             if (finished)
             {
                 Ecb.SetEnabled(key, entity, false);
-                ShrinkingComponents.SetComponentEnabled(entity, false);
+                // Validates and invalidates proper queries
+                ShrinkingLookup.SetComponentEnabled(entity, false);
+                InitializedLookup.SetComponentEnabled(entity, false);
                 behaviour.Reset(PhysicsBlobs);
             }
             else

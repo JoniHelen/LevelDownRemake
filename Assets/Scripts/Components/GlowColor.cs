@@ -4,6 +4,9 @@ using Unity.Rendering;
 
 namespace LevelDown.Components
 {
+    /// <summary>
+    /// A material property override for glow color.
+    /// </summary>
     [MaterialProperty("_Color")]
     public struct GlowColor : IComponentData
     {

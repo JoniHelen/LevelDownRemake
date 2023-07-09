@@ -7,7 +7,7 @@ namespace LevelDown.Systems
     [UpdateAfter(typeof(PlayerInputSystem))]
     public partial struct PlayerControlSystem : ISystem
     {
-        [BurstCompile(FloatMode = FloatMode.Fast, OptimizeFor = OptimizeFor.Performance, CompileSynchronously = true)]
+        [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
             new PlayerControlJob().Schedule();

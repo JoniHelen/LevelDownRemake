@@ -5,7 +5,10 @@ using LevelDown.Components.Singletons;
 
 namespace LevelDown.Jobs.Triggers
 {
-    [BurstCompile(FloatMode = FloatMode.Fast, OptimizeFor = OptimizeFor.Performance, CompileSynchronously = true)]
+    /// <summary>
+    /// Triggers level generation if the time is right.
+    /// </summary>
+    [BurstCompile]
     public partial struct LevelGenerationTriggerJob : IJobEntity
     {
         public Entity TriggerSingleton;
@@ -21,7 +24,10 @@ namespace LevelDown.Jobs.Triggers
         }
     }
 
-    [BurstCompile(FloatMode = FloatMode.Fast, OptimizeFor = OptimizeFor.Performance, CompileSynchronously = true)]
+    /// <summary>
+    /// Destorys and generates a new level at the same time after an inteval.
+    /// </summary>
+    [BurstCompile]
     public partial struct LevelDestructionTriggerJob : IJobEntity
     {
         public Entity TriggerSingleton;
@@ -33,6 +39,7 @@ namespace LevelDown.Jobs.Triggers
             {
                 trigger.DestroyTime = 0;
                 Ecb.AddComponent<DestroyLevelTriggerTag>(TriggerSingleton);
+                Ecb.AddComponent<GenerateLevelTriggerTag>(TriggerSingleton);
             }
         }
     }

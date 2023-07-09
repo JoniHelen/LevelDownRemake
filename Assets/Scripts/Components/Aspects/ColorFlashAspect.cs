@@ -3,6 +3,9 @@ using Unity.Entities;
 
 namespace LevelDown.Components.Aspects
 {
+    /// <summary>
+    /// This aspect contains all components needed to control the floor tiles' colors.
+    /// </summary>
     public readonly partial struct ColorFlashAspect : IAspect
     {
         public readonly Entity Self;

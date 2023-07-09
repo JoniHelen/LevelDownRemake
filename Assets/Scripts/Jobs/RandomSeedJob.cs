@@ -6,8 +6,10 @@ using LevelDown.Noise;
 
 namespace LevelDown.Jobs
 {
-    [WithAll(typeof(Floor)), WithOptions(EntityQueryOptions.IncludeDisabledEntities)]
-    [BurstCompile(FloatMode = FloatMode.Fast, OptimizeFor = OptimizeFor.Performance, CompileSynchronously = true)]
+    /// <summary>
+    /// Seeds the random components of floor tiles.
+    /// </summary>
+    [BurstCompile, WithAll(typeof(Floor)), WithOptions(EntityQueryOptions.IncludeDisabledEntities)]
     public partial struct RandomSeedJob : IJobEntity
     {
         public void Execute([ChunkIndexInQuery] int chunkIndex, [EntityIndexInChunk] int entityIndex, ref RandomValue random)

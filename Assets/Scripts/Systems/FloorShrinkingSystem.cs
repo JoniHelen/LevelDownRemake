@@ -13,22 +13,26 @@ namespace LevelDown.Systems
     public partial struct FloorShrinkingSystem : ISystem
     {
         private ComponentLookup<Shrinking> _shrinkingLookup;
+        private ComponentLookup<Initialized> _initializedLookup;
 
-        [BurstCompile(FloatMode = FloatMode.Fast, OptimizeFor = OptimizeFor.Performance, CompileSynchronously = true)]
+        [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
             _shrinkingLookup = state.GetComponentLookup<Shrinking>();
+            _initializedLookup = state.GetComponentLookup<Initialized>();
         }
 
-        [BurstCompile(FloatMode = FloatMode.Fast, OptimizeFor = OptimizeFor.Performance, CompileSynchronously = true)]
+        [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
             _shrinkingLookup.Update(ref state);
+            _initializedLookup.Update(ref state);
 
             new FloorResetJob
             {
                 Time = SystemAPI.Time.ElapsedTime,
-                ShrinkingComponents = _shrinkingLookup,
+                ShrinkingLookup = _shrinkingLookup,
+                InitializedLookup = _initializedLookup,
                 PhysicsBlobs = SystemAPI.GetSingleton<FloorPhysicsBlobs>(),
                 Ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter()

@@ -6,7 +6,10 @@ using LevelDown.Noise.Vectorized;
 
 namespace LevelDown.Jobs
 {
-    [BurstCompile(FloatMode = FloatMode.Fast, OptimizeFor = OptimizeFor.Performance, CompileSynchronously = true)]
+    /// <summary>
+    /// Generates vectorized Simplex noise.
+    /// </summary>
+    [BurstCompile]
     public struct VectorizedNoiseGenerationJob : IJobParallelFor
     {
         [WriteOnly] public NativeArray<float4> ResultNoise;
@@ -19,12 +22,15 @@ namespace LevelDown.Jobs
             int realIndex = index * 4;
 
             float4 i = new(realIndex, realIndex + 1, realIndex + 2, realIndex + 3);
+            // Relative coordinates
             float4 u = math.floor(InvHeight * i + 0.00001f);
             float4 v = i - Extents.y * u;
 
+            // Scale the coordinates to noise
             u /= Extents.x > Extents.y ? Extents.y : Extents.x;
             v /= Extents.x > Extents.y ? Extents.y : Extents.x;
 
+            // Apply offset
             u += Offset.Value.x;
             v += Offset.Value.y;
 

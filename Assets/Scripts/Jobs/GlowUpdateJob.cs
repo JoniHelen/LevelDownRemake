@@ -7,8 +7,10 @@ using LevelDown.Components;
 
 namespace LevelDown.Jobs
 {
-    [WithAll(typeof(ColorFlash))]
-    [BurstCompile(FloatMode = FloatMode.Fast, OptimizeFor = OptimizeFor.Performance, CompileSynchronously = true)]
+    /// <summary>
+    /// Manages the glow color and brightness of all floor tiles.
+    /// </summary>
+    [BurstCompile, WithAll(typeof(ColorFlash))]
     public partial struct GlowUpdateJob : IJobEntity
     {
         public double Time;
@@ -24,6 +26,7 @@ namespace LevelDown.Jobs
             var finished = timeSinceStart >= flash.Duration;
             var baseGlow = floor.Tall ? 0f : 1.1f;
 
+            // Lerp values based on time elapsed
             color.Color = finished ? flash.BaseColor : Color.Lerp(flash.FlashColor, flash.BaseColor, t);
             brightness.Value = finished ? baseGlow : math.lerp(15f, baseGlow, t);
 

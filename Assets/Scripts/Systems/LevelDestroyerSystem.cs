@@ -5,7 +5,6 @@ using Unity.Jobs;
 using Unity.Collections;
 using LevelDown.Components;
 using LevelDown.Components.Triggers;
-using LevelDown.Components.Singletons;
 using LevelDown.Jobs;
 
 namespace LevelDown.Systems
@@ -19,9 +18,16 @@ namespace LevelDown.Systems
         private ComponentLookup<Shrinking> _shrinkingLookup;
         private ComponentLookup<ColorFlash> _flashLookup;
 
-        [BurstCompile(FloatMode = FloatMode.Fast, OptimizeFor = OptimizeFor.Performance, CompileSynchronously = true)]
+        private double _startTime;
+        private float _duration;
+        private float _targetRadius;
+
+        [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
+            _duration = 1;
+            _targetRadius = 22;
+
             state.RequireForUpdate<DestroyLevelTriggerTag>();
             _entities = new(600, Allocator.Persistent);
 
@@ -29,41 +35,37 @@ namespace LevelDown.Systems
             _flashLookup = state.GetComponentLookup<ColorFlash>();
         }
 
-        [BurstCompile(FloatMode = FloatMode.Fast, OptimizeFor = OptimizeFor.Performance, CompileSynchronously = true)]
+        [BurstCompile]
         public void OnStartRunning(ref SystemState state)
         {
-            SystemAPI.GetComponentRW<LevelDestroyerData>(SystemAPI.GetSingletonEntity<LevelDestroyerData>())
-                .ValueRW.StartTime = SystemAPI.Time.ElapsedTime;
-
+            _startTime = SystemAPI.Time.ElapsedTime;
             _entities.Clear();
         }
 
-        [BurstCompile(FloatMode = FloatMode.Fast, OptimizeFor = OptimizeFor.Performance, CompileSynchronously = true)]
+        [BurstCompile]
         public void OnStopRunning(ref SystemState state)
         {
 
         }
 
-        [BurstCompile(FloatMode = FloatMode.Fast, OptimizeFor = OptimizeFor.Performance, CompileSynchronously = true)]
+        [BurstCompile]
         public void OnDestroy(ref SystemState state)
         {
             _entities.Dispose();
         }
 
-        [BurstCompile(FloatMode = FloatMode.Fast, OptimizeFor = OptimizeFor.Performance, CompileSynchronously = true)]
+        [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            var destroyerEntity = SystemAPI.GetSingletonEntity<LevelDestroyerData>();
-            var destroyerData = SystemAPI.GetComponentRW<LevelDestroyerData>(destroyerEntity);
+            var timeSinceStart = (float)(SystemAPI.Time.ElapsedTime - _startTime);
 
-            var timeSinceStart = (float)(SystemAPI.Time.ElapsedTime - destroyerData.ValueRO.StartTime);
-
-            if (timeSinceStart < destroyerData.ValueRO.Duration)
+            if (timeSinceStart < _duration)
             {
                 NativeList<DistanceHit> distanceHits = new(Allocator.TempJob);
 
+                // Overlap a sphere to destory the level
                 _ = SystemAPI.GetSingleton<PhysicsWorldSingleton>().CollisionWorld.OverlapSphere(
-                    0, destroyerData.ValueRO.TargetRadius * (timeSinceStart / destroyerData.ValueRO.Duration), ref distanceHits, CollisionFilter.Default);
+                    0, _targetRadius * (timeSinceStart / _duration), ref distanceHits, CollisionFilter.Default);
 
                 _shrinkingLookup.Update(ref state);
                 _flashLookup.Update(ref state);
@@ -80,6 +82,7 @@ namespace LevelDown.Systems
             }
             else
             {
+                // Finish execution
                 SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                     .CreateCommandBuffer(state.WorldUnmanaged).RemoveComponent<DestroyLevelTriggerTag>(
                     SystemAPI.GetSingletonEntity<TriggerTagSingleton>());

@@ -7,7 +7,10 @@ using LevelDown.Components;
 
 namespace LevelDown.Jobs
 {
-    [BurstCompile(FloatMode = FloatMode.Fast, OptimizeFor = OptimizeFor.Performance, CompileSynchronously = true)]
+    /// <summary>
+    /// "Destroys" the floor tiles that get hit during level destruction.
+    /// </summary>
+    [BurstCompile]
     public partial struct LevelDestroyerJob : IJobEntity
     {
         public double Time;
@@ -20,6 +23,7 @@ namespace LevelDown.Jobs
 
         public void Execute(Entity entity, ref RandomValue random, RigidBodyAspect rigidBody)
         {
+            // Find if the entity has already been "destroyed"
             unsafe
             {
                 var data = Entities.ListData;
@@ -27,6 +31,7 @@ namespace LevelDown.Jobs
                     if (data->ElementAt(i) == entity) return;
             }
 
+            // Find if the entity was hit this frame
             var hitEntity = Entity.Null;
 
             for (var i = 0; i < Hits.Length; i++)
@@ -43,6 +48,7 @@ namespace LevelDown.Jobs
             var shrink = ShrinkingLookup.GetRefRW(hitEntity);
             var flash = FlashLookup.GetRefRW(hitEntity);
 
+            // Flash a color and start "destruction"
             Entities.AddNoResize(hitEntity);
             rigidBody.IsKinematic = false;
             flash.ValueRW.StartTime = shrink.ValueRW.StartTime = Time;

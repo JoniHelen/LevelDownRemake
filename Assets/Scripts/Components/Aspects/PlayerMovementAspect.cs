@@ -6,6 +6,9 @@ using LevelDown.Components.Singletons;
 
 namespace LevelDown.Components.Aspects
 {
+    /// <summary>
+    /// This aspect controls the player's movement.
+    /// </summary>
     public readonly partial struct PlayerControlAspect : IAspect
     {
         private readonly RefRW<LocalTransform> _transform;
@@ -40,6 +43,9 @@ namespace LevelDown.Components.Aspects
             set => _velocity.ValueRW.Linear = value;
         }
 
+        /// <summary>
+        /// Updates the player's movement velocity from input.
+        /// </summary>
         public void UpdateVelocity()
         {
             Velocity = InputLength * MovementSpeed * new float3(MovementDirection, 0);

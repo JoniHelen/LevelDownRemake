@@ -5,11 +5,15 @@ using LevelDown.Components.Singletons;
 
 namespace LevelDown.Jobs
 {
+    /// <summary>
+    /// Gathers input from the InputSystem.
+    /// </summary>
     public partial struct InputGatheringJob : IJobEntity
     {
         public void Execute(ref PlayerInputData input)
         {
             float2 movementInput = GetMovementInput();
+            // Input length is used with controllers for normalized movement
             input.InputLength = math.clamp(math.length(movementInput), 0, 1);
             input.MovementDirection = math.normalizesafe(movementInput);
         }

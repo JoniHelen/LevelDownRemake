@@ -7,6 +7,7 @@ using Unity.Physics;
 using LevelDown.Components.Triggers;
 using LevelDown.Components.Singletons;
 using LevelDown.Jobs;
+using LevelDown.Noise;
 
 namespace LevelDown.Systems
 {
@@ -17,20 +18,23 @@ namespace LevelDown.Systems
     {
         private NativeArray<float4> _noiseArray;
         private float2 _dimensions;
+        private Random _random;
 
-        [BurstCompile(FloatPrecision.Standard, FloatMode.Fast, OptimizeFor = OptimizeFor.Performance, CompileSynchronously = true)]
+        [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
+            _random = new Random(SmallXXHash.Seed((int)(SystemAPI.Time.ElapsedTime * 1000)));
             _dimensions = new(32, 18);
             _noiseArray = new((int)(_dimensions.x * _dimensions.y), Allocator.Persistent);
             state.RequireForUpdate<GenerateLevelTriggerTag>();
         }
 
-        [BurstCompile(FloatMode = FloatMode.Fast, OptimizeFor = OptimizeFor.Performance, CompileSynchronously = true)]
+        [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            NativeReference<float2> Offset = new(Allocator.TempJob);
+            NativeReference<float2> Offset = new(_random.NextFloat(1000), Allocator.TempJob);
 
+            // Find offset
             JobHandle offsetJob = new NoiseOffsetJob
             {
                 Extents = _dimensions,
@@ -39,6 +43,7 @@ namespace LevelDown.Systems
                 Offset = Offset
             }.Schedule(state.Dependency);
 
+            // Generate noise
             JobHandle noiseJob = new VectorizedNoiseGenerationJob
             {
                 ResultNoise = _noiseArray,
@@ -50,23 +55,26 @@ namespace LevelDown.Systems
 
             JobHandle dispose = Offset.Dispose(noiseJob);
 
+            // Initialize entities
             state.Dependency = new LevelGenerationJob
             {
                 Extents = _dimensions,
                 InvHeight = 1 / _dimensions.y,
                 TallThreshold = 0.6f,
+                BaseColor = UnityEngine.Color.HSVToRGB(_random.NextFloat(), _random.NextFloat(0.5f, 1), 1),
                 PhysicsBlobs = SystemAPI.GetSingleton<FloorPhysicsBlobs>(),
                 Noise = _noiseArray.Reinterpret<float>(sizeof(float) * 4),
                 Ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter()
             }.ScheduleParallel(dispose);
 
+            // Finish execution
             SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged).RemoveComponent<GenerateLevelTriggerTag>(
                 SystemAPI.GetSingletonEntity<TriggerTagSingleton>());
         }
 
-        [BurstCompile(FloatMode = FloatMode.Fast, OptimizeFor = OptimizeFor.Performance, CompileSynchronously = true)]
+        [BurstCompile]
         public void OnDestroy(ref SystemState state) => _noiseArray.Dispose();
     }
 }

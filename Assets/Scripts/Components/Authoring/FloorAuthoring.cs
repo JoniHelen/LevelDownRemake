@@ -15,6 +15,8 @@ namespace LevelDown.Components.Authoring
             var entity = GetEntity(TransformUsageFlags.Dynamic);
 
             AddComponent<RandomValue>(entity);
+            AddComponent<Initialized>(entity);
+            SetComponentEnabled<Initialized>(entity, false);
             AddComponent(entity, new PhysicsMassOverride { IsKinematic = 1 });
             AddComponent(entity, new Floor { Tall = false });
             AddComponent(entity, new PostTransformMatrix { Value = float4x4.identity });
