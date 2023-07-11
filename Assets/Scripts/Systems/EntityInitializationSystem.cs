@@ -1,8 +1,8 @@
 using Unity.Entities;
 using Unity.Burst;
 using Unity.Collections;
-using Unity.Physics;
 using Unity.Mathematics;
+using Unity.Physics;
 using LevelDown.Jobs;
 using LevelDown.Components;
 using LevelDown.Components.Singletons;
@@ -26,26 +26,6 @@ namespace LevelDown.Systems
             // Trigger Singleton
             state.EntityManager.CreateSingleton<TriggerTagSingleton>();
 
-            // Colliders
-            var collider = BoxCollider.Create(new BoxGeometry
-            {
-                BevelRadius = 0.05f,
-                Center = 0,
-                Orientation = quaternion.identity,
-                Size = new float3(1, 1, 2)
-            });
-
-            collider.Value.SetCollisionFilter(new CollisionFilter
-            {
-                BelongsTo = 1 << 3, // TallFloor
-                CollidesWith = uint.MaxValue ^ (1u << 3), // Everything but TallFloor
-                GroupIndex = 0
-            });
-
-            state.EntityManager.SetComponentData(
-                state.EntityManager.CreateSingleton<FloorPhysicsBlobs>(),
-                new FloorPhysicsBlobs { Tall = collider });
-
             // Test Singleton
             Entity test = state.EntityManager.CreateSingleton<TestTrigger>();
             state.EntityManager.SetComponentData(test, new TestTrigger { Interval = 4, GenerateTime = 2 });
@@ -57,11 +37,29 @@ namespace LevelDown.Systems
         {
             // Instantiate floor entities
             var prefab = SystemAPI.GetSingleton<EntityPrefab>().Value;
-            state.EntityManager.Instantiate(prefab, 1300, Allocator.Temp);
 
-            // Get the small physics shape blob asset
-            SystemAPI.GetSingletonRW<FloorPhysicsBlobs>()
-                .ValueRW.Small = SystemAPI.GetComponent<PhysicsCollider>(prefab).Value;
+            // Collider blobs
+            var colliderTall = BoxCollider.Create(new BoxGeometry
+            {
+                BevelRadius = 0.05f,
+                Center = 0,
+                Orientation = quaternion.identity,
+                Size = new float3(1, 1, 2)
+            });
+
+            colliderTall.Value.SetCollisionFilter(new CollisionFilter
+            {
+                BelongsTo = 1u << 3, // TallFloor
+                CollidesWith = uint.MaxValue ^ (1u << 3 | 1u << 2), // Everything except floors
+                GroupIndex = 0
+            });
+
+            state.EntityManager.AddSharedComponent(prefab, new FloorPhysicsBlobs { 
+                Tall = colliderTall, 
+                Small = SystemAPI.GetComponent<PhysicsCollider>(prefab).Value 
+            });
+
+            state.EntityManager.Instantiate(prefab, 1300, Allocator.Temp);
 
             // Seed the flash randoms
             new RandomSeedJob().ScheduleParallel();

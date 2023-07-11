@@ -4,7 +4,6 @@ using Unity.Mathematics;
 using Unity.Burst;
 using LevelDown.Components;
 using LevelDown.Components.Aspects;
-using LevelDown.Components.Singletons;
 
 namespace LevelDown.Jobs
 {
@@ -18,7 +17,6 @@ namespace LevelDown.Jobs
         public float InvHeight;
         public float TallThreshold;
         public UnityEngine.Color BaseColor;
-        public FloorPhysicsBlobs PhysicsBlobs;
         public EntityCommandBuffer.ParallelWriter Ecb;
         [ReadOnly] public NativeArray<float> Noise;
 
@@ -32,12 +30,10 @@ namespace LevelDown.Jobs
             var y = entityIndex - Extents.y * x;
 
             Ecb.SetEnabled(key, entity, true);
-
-            flash.BaseColor = BaseColor;
-            color.Color = BaseColor;
+            flash.BaseColor = color.Color = BaseColor;
 
             behaviour.Initialize((Noise[entityIndex] + 1) / 2 > TallThreshold,
-                new(x - (Extents.x / 2 - 0.5f), y - (Extents.y / 2f - 0.5f)), PhysicsBlobs);
+                new(x - (Extents.x / 2 - 0.5f), y - (Extents.y / 2f - 0.5f)));
         }
     }
 }

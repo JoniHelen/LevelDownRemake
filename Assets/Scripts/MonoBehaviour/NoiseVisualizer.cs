@@ -75,8 +75,8 @@ public class NoiseVisualizer : MonoBehaviour
 
         float2 local = 0;
 
-        if (world.EntityManager.CreateEntityQuery(typeof(TempPlayerPos)).TryGetSingleton(out TempPlayerPos pos))
-            local = pos.Value;
+        /*if (world.EntityManager.CreateEntityQuery(typeof(TempPlayerPos)).TryGetSingleton(out TempPlayerPos pos))
+            local = pos.Value;*/
 
         float2 playerPosition = math.floor(local + new float2(resolution.x / 2f - 0.5f, resolution.y / 2f - 0.5f));
 

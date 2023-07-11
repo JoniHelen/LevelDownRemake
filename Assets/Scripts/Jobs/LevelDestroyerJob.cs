@@ -4,24 +4,22 @@ using Unity.Burst;
 using Unity.Physics;
 using Unity.Physics.Aspects;
 using LevelDown.Components;
+using LevelDown.Components.Aspects;
 
 namespace LevelDown.Jobs
 {
     /// <summary>
     /// "Destroys" the floor tiles that get hit during level destruction.
     /// </summary>
-    [BurstCompile]
+    [BurstCompile, WithOptions(EntityQueryOptions.IgnoreComponentEnabledState)]
     public partial struct LevelDestroyerJob : IJobEntity
     {
         public double Time;
-        [NativeDisableParallelForRestriction]
-        public ComponentLookup<Shrinking> ShrinkingLookup;
-        [NativeDisableParallelForRestriction]
-        public ComponentLookup<ColorFlash> FlashLookup;
         public NativeList<Entity>.ParallelWriter Entities;
         [ReadOnly] public NativeList<DistanceHit> Hits;
 
-        public void Execute(Entity entity, ref RandomValue random, RigidBodyAspect rigidBody)
+        public void Execute(Entity entity, ref RandomValue random, RigidBodyAspect rigidBody,
+            ColorFlashAspect flash, ShrinkingAspect shrink)
         {
             // Find if the entity has already been "destroyed"
             unsafe
@@ -45,16 +43,12 @@ namespace LevelDown.Jobs
 
             if (hitEntity == Entity.Null) return;
 
-            var shrink = ShrinkingLookup.GetRefRW(hitEntity);
-            var flash = FlashLookup.GetRefRW(hitEntity);
-
             // Flash a color and start "destruction"
             Entities.AddNoResize(hitEntity);
             rigidBody.IsKinematic = false;
-            flash.ValueRW.StartTime = shrink.ValueRW.StartTime = Time;
-            flash.ValueRW.FlashColor = UnityEngine.Color.HSVToRGB(random.Value.NextFloat(), 1, 1);
-            ShrinkingLookup.SetComponentEnabled(hitEntity, true);
-            FlashLookup.SetComponentEnabled(hitEntity, true);
+            flash.StartTime = shrink.StartTime = Time;
+            flash.Enabled = shrink.Enabled = true;
+            flash.FlashColor = UnityEngine.Color.HSVToRGB(random.Value.NextFloat(), 1, 1);
         }
     }
 }

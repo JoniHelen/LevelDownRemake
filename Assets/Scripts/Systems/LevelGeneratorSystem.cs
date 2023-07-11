@@ -5,9 +5,10 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Physics;
 using LevelDown.Components.Triggers;
-using LevelDown.Components.Singletons;
 using LevelDown.Jobs;
 using LevelDown.Noise;
+using EndSimulation =
+    Unity.Entities.EndSimulationEntityCommandBufferSystem.Singleton;
 
 namespace LevelDown.Systems
 {
@@ -62,15 +63,15 @@ namespace LevelDown.Systems
                 InvHeight = 1 / _dimensions.y,
                 TallThreshold = 0.6f,
                 BaseColor = UnityEngine.Color.HSVToRGB(_random.NextFloat(), _random.NextFloat(0.5f, 1), 1),
-                PhysicsBlobs = SystemAPI.GetSingleton<FloorPhysicsBlobs>(),
                 Noise = _noiseArray.Reinterpret<float>(sizeof(float) * 4),
-                Ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                Ecb = SystemAPI.GetSingleton<EndSimulation>()
                 .CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter()
             }.ScheduleParallel(dispose);
 
             // Finish execution
-            SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
-                .CreateCommandBuffer(state.WorldUnmanaged).RemoveComponent<GenerateLevelTriggerTag>(
+            SystemAPI.GetSingleton<EndSimulation>()
+                .CreateCommandBuffer(state.WorldUnmanaged)
+                .RemoveComponent<GenerateLevelTriggerTag>(
                 SystemAPI.GetSingletonEntity<TriggerTagSingleton>());
         }
 

@@ -8,7 +8,7 @@ namespace LevelDown.Systems
     /// <summary>
     /// Stores data about a level in a bitmap.
     /// </summary>
-    public struct LevelBitMap : IDisposable
+    public struct LevelBitMap : INativeDisposable, IDisposable
     {
         public NativeArray<uint> Data;
 

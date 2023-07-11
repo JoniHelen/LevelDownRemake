@@ -3,9 +3,10 @@ using Unity.Physics;
 using Unity.Burst;
 using Unity.Jobs;
 using Unity.Collections;
-using LevelDown.Components;
 using LevelDown.Components.Triggers;
 using LevelDown.Jobs;
+using EndSimulation =
+    Unity.Entities.EndSimulationEntityCommandBufferSystem.Singleton;
 
 namespace LevelDown.Systems
 {
@@ -15,8 +16,6 @@ namespace LevelDown.Systems
     public partial struct LevelDestroyerSystem : ISystem, ISystemStartStop
     {
         private NativeList<Entity> _entities;
-        private ComponentLookup<Shrinking> _shrinkingLookup;
-        private ComponentLookup<ColorFlash> _flashLookup;
 
         private double _startTime;
         private float _duration;
@@ -30,9 +29,6 @@ namespace LevelDown.Systems
 
             state.RequireForUpdate<DestroyLevelTriggerTag>();
             _entities = new(600, Allocator.Persistent);
-
-            _shrinkingLookup = state.GetComponentLookup<Shrinking>();
-            _flashLookup = state.GetComponentLookup<ColorFlash>();
         }
 
         [BurstCompile]
@@ -40,18 +36,6 @@ namespace LevelDown.Systems
         {
             _startTime = SystemAPI.Time.ElapsedTime;
             _entities.Clear();
-        }
-
-        [BurstCompile]
-        public void OnStopRunning(ref SystemState state)
-        {
-
-        }
-
-        [BurstCompile]
-        public void OnDestroy(ref SystemState state)
-        {
-            _entities.Dispose();
         }
 
         [BurstCompile]
@@ -64,17 +48,12 @@ namespace LevelDown.Systems
                 NativeList<DistanceHit> distanceHits = new(Allocator.TempJob);
 
                 // Overlap a sphere to destory the level
-                _ = SystemAPI.GetSingleton<PhysicsWorldSingleton>().CollisionWorld.OverlapSphere(
-                    0, _targetRadius * (timeSinceStart / _duration), ref distanceHits, CollisionFilter.Default);
-
-                _shrinkingLookup.Update(ref state);
-                _flashLookup.Update(ref state);
+                _ = SystemAPI.GetSingleton<PhysicsWorldSingleton>()
+                    .OverlapSphere(0, _targetRadius * (timeSinceStart / _duration), ref distanceHits, CollisionFilter.Default);
 
                 JobHandle destroyerHandle = new LevelDestroyerJob {
                     Time = SystemAPI.Time.ElapsedTime,
                     Hits = distanceHits,
-                    FlashLookup = _flashLookup,
-                    ShrinkingLookup = _shrinkingLookup,
                     Entities = _entities.AsParallelWriter()
                 }.ScheduleParallel(state.Dependency);
 
@@ -83,10 +62,23 @@ namespace LevelDown.Systems
             else
             {
                 // Finish execution
-                SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
-                    .CreateCommandBuffer(state.WorldUnmanaged).RemoveComponent<DestroyLevelTriggerTag>(
+                SystemAPI.GetSingleton<EndSimulation>()
+                    .CreateCommandBuffer(state.WorldUnmanaged)
+                    .RemoveComponent<DestroyLevelTriggerTag>(
                     SystemAPI.GetSingletonEntity<TriggerTagSingleton>());
             }
+        }
+
+        [BurstCompile]
+        public void OnStopRunning(ref SystemState state)
+        {
+
+        }
+
+        [BurstCompile]
+        public void OnDestroy(ref SystemState state)
+        {
+            _entities.Dispose();
         }
     }
 }

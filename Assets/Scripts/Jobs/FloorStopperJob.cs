@@ -1,6 +1,5 @@
 using Unity.Entities;
 using Unity.Burst;
-using Unity.Collections;
 using LevelDown.Components;
 using LevelDown.Components.Aspects;
 
@@ -12,16 +11,13 @@ namespace LevelDown.Jobs
     [BurstCompile, WithDisabled(typeof(Initialized), typeof(Shrinking))]
     public partial struct FloorStopperJob : IJobEntity
     {
-        [NativeDisableParallelForRestriction]
-        public ComponentLookup<Initialized> InitializedLookup;
-
-        public void Execute(Entity entity, FloorBehaviourAspect behaviour)
+        public void Execute(FloorBehaviourAspect behaviour, EnabledRefRW<Initialized> initialized)
         {
             if (behaviour.Position.z <= 0)
             {
                 behaviour.Stop();
                 behaviour.Position = new(behaviour.Position.xy, behaviour.Tall ? -0.5f : 0);
-                InitializedLookup.SetComponentEnabled(entity, true);
+                initialized.ValueRW = true;
             }
         }
     }

@@ -1,37 +1,32 @@
 using UnityEngine;
 using Unity.Burst;
 using Unity.Entities;
-using Unity.Collections;
 using Unity.Mathematics;
-using LevelDown.Components;
+using LevelDown.Components.Aspects;
 
 namespace LevelDown.Jobs
 {
     /// <summary>
     /// Manages the glow color and brightness of all floor tiles.
     /// </summary>
-    [BurstCompile, WithAll(typeof(ColorFlash))]
+    [BurstCompile]
     public partial struct GlowUpdateJob : IJobEntity
     {
         public double Time;
-        [NativeDisableParallelForRestriction]
-        public ComponentLookup<ColorFlash> FlashLookup;
 
-        public void Execute(Entity entity, ref GlowBrightness brightness, ref GlowColor color, ref Floor floor)
+        public void Execute(ColorControlAspect control)
         {
-            var flash = FlashLookup[entity];
-
-            var timeSinceStart = (float)(Time - flash.StartTime);
-            var t = timeSinceStart / flash.Duration;
-            var finished = timeSinceStart >= flash.Duration;
-            var baseGlow = floor.Tall ? 0f : 1.1f;
+            var timeSinceStart = (float)(Time - control.StartTime);
+            var t = timeSinceStart / control.Duration;
+            var finished = timeSinceStart >= control.Duration;
+            var baseGlow = control.Tall ? 0f : 1.1f;
 
             // Lerp values based on time elapsed
-            color.Color = finished ? flash.BaseColor : Color.Lerp(flash.FlashColor, flash.BaseColor, t);
-            brightness.Value = finished ? baseGlow : math.lerp(15f, baseGlow, t);
+            control.Color = finished ? control.BaseColor : Color.Lerp(control.FlashColor, control.BaseColor, t);
+            control.Brightness = finished ? baseGlow : math.lerp(15f, baseGlow, t);
 
             if (finished)
-                FlashLookup.SetComponentEnabled(entity, false);
+                control.Enabled = false;
         }
     }
 }

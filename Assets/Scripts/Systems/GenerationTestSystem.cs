@@ -3,17 +3,13 @@ using Unity.Burst;
 using LevelDown.Components.Triggers;
 using LevelDown.Components.Singletons;
 using LevelDown.Jobs.Triggers;
+using EndSimulation =
+    Unity.Entities.EndSimulationEntityCommandBufferSystem.Singleton;
 
 namespace LevelDown.Systems
 {
     public partial struct GenerationTestSystem : ISystem
     {
-        [BurstCompile]
-        public void OnCreate(ref SystemState state)
-        {
-
-        }
-
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
@@ -25,7 +21,7 @@ namespace LevelDown.Systems
 
             new LevelDestructionTriggerJob
             {
-                Ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                Ecb = SystemAPI.GetSingleton<EndSimulation>()
                 .CreateCommandBuffer(state.WorldUnmanaged),
                 TriggerSingleton = trigger
             }.Schedule();
