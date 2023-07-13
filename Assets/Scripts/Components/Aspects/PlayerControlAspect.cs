@@ -3,6 +3,7 @@ using Unity.Physics;
 using Unity.Transforms;
 using Unity.Mathematics;
 using LevelDown.Components.Singletons;
+using LevelDown.Input;
 
 namespace LevelDown.Components.Aspects
 {
@@ -18,6 +19,16 @@ namespace LevelDown.Components.Aspects
         public float2 MovementDirection
         {
             get => _playerInput.ValueRO.MovementDirection;
+        }
+
+        public InputButton FireButton
+        {
+            get => _playerInput.ValueRO.FireButton;
+        }
+
+        public float2 AimDirection
+        {
+            get => _playerInput.ValueRO.AimDirection;
         }
 
         public float InputLength
@@ -46,7 +57,7 @@ namespace LevelDown.Components.Aspects
         /// <summary>
         /// Updates the player's movement velocity from input.
         /// </summary>
-        public void UpdateVelocity()
+        public void Update()
         {
             Velocity = InputLength * MovementSpeed * new float3(MovementDirection, 0);
         }

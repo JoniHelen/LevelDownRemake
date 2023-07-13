@@ -4,6 +4,7 @@ using LevelDown.Components.Managed;
 
 namespace LevelDown.Systems
 {
+    [UpdateInGroup(typeof(ManagedSystemGroup))]
     public partial struct FPSSystem : ISystem
     {
         private NativeQueue<float> _fpsQueue;

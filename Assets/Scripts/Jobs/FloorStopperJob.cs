@@ -1,6 +1,7 @@
 using Unity.Entities;
 using Unity.Burst;
 using LevelDown.Components;
+using LevelDown.Components.Tags;
 using LevelDown.Components.Aspects;
 
 namespace LevelDown.Jobs

@@ -20,15 +20,18 @@ namespace LevelDown.Systems
         [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
-            state.RequireForUpdate<EntityPrefab>();
+            state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<Floor, Prefab>()
+                .WithOptions(EntityQueryOptions.IncludePrefab | EntityQueryOptions.IncludeDisabledEntities).Build());
 
             #region SINGLETON_INIT
             // Trigger Singleton
             state.EntityManager.CreateSingleton<TriggerTagSingleton>();
 
+            // Entity queue
+            state.EntityManager.CreateSingleton(new ProjectileQueue { Projectiles = new NativeQueue<Input.ProjectileDescriptor>(Allocator.Persistent) });
+
             // Test Singleton
-            Entity test = state.EntityManager.CreateSingleton<TestTrigger>();
-            state.EntityManager.SetComponentData(test, new TestTrigger { Interval = 4, GenerateTime = 2 });
+            state.EntityManager.CreateSingleton(new TestTrigger { Interval = 4, GenerateTime = 2 });
             #endregion
         }
 
@@ -36,7 +39,9 @@ namespace LevelDown.Systems
         public void OnStartRunning(ref SystemState state)
         {
             // Instantiate floor entities
-            var prefab = SystemAPI.GetSingleton<EntityPrefab>().Value;
+            var prefab = SystemAPI.QueryBuilder().WithAll<Floor, Prefab>()
+                .WithOptions(EntityQueryOptions.IncludePrefab | EntityQueryOptions.IncludeDisabledEntities).Build()
+                .GetSingletonEntity();
 
             // Collider blobs
             var colliderTall = BoxCollider.Create(new BoxGeometry
