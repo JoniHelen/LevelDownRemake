@@ -1,3 +1,5 @@
+using UnityEngine.InputSystem.Controls;
+
 namespace LevelDown.Input
 {
     /// <summary>
@@ -8,5 +10,12 @@ namespace LevelDown.Input
         public bool IsPressed;
         public bool WasPressedThisFrame;
         public bool WasReleasedThisFrame;
+
+        public static implicit operator InputButton(ButtonControl button) => new()
+        {
+            IsPressed = button.isPressed,
+            WasPressedThisFrame = button.wasPressedThisFrame,
+            WasReleasedThisFrame = button.wasReleasedThisFrame
+        };
     }
 }

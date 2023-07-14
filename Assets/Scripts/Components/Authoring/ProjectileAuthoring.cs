@@ -1,7 +1,7 @@
 using Unity.Entities;
 using UnityEngine;
 
-namespace LevelDown.Components
+namespace LevelDown.Components.Authoring
 {
     public class ProjectileAuthoring : MonoBehaviour
     {
@@ -15,6 +15,13 @@ namespace LevelDown.Components
             var entity = GetEntity(TransformUsageFlags.Dynamic);
 
             AddComponent<Projectile>(entity);
+            AddComponent(entity, new ColorExplosion
+            {
+                Duration = 0.1f,
+                TargetSize = 1.5f
+            });
+            SetComponentEnabled<ColorExplosion>(entity, false);
+            AddBuffer<EntityBufferData>(entity);
         }
     }
 }

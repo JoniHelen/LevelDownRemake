@@ -5,8 +5,8 @@ using Unity.Jobs;
 using LevelDown.Components;
 using LevelDown.Components.Singletons;
 using LevelDown.Jobs;
-using EndSimulation = 
-    Unity.Entities.EndSimulationEntityCommandBufferSystem.Singleton;
+using BeginSimulation = 
+    Unity.Entities.BeginSimulationEntityCommandBufferSystem.Singleton;
 
 namespace LevelDown.Systems
 {
@@ -29,7 +29,7 @@ namespace LevelDown.Systems
                 .Build().GetSingletonEntity();
 
             var entityCount = SystemAPI.QueryBuilder().WithAll<Projectile, Disabled>()
-                .WithOptions(EntityQueryOptions.IncludeDisabledEntities).Build()
+                .WithDisabled<ColorExplosion>().WithOptions(EntityQueryOptions.IncludeDisabledEntities).Build()
                 .CalculateEntityCount();
 
             state.CompleteDependency();
@@ -46,14 +46,16 @@ namespace LevelDown.Systems
             queue.Clear();
 
             if (entityCount < requiredProjectiles.Length)
+            {
                 state.EntityManager.Instantiate(prefab, requiredProjectiles.Length - entityCount, Allocator.Temp);
+            }
 
             JobHandle init = new ProjectileInitializationJob
             {
                 Descriptors = requiredProjectiles,
-                Ecb = SystemAPI.GetSingleton<EndSimulation>()
+                Ecb = SystemAPI.GetSingleton<BeginSimulation>()
                 .CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter()
-            }.Schedule(state.Dependency);
+            }.ScheduleParallel(state.Dependency);
 
             state.Dependency = requiredProjectiles.Dispose(init);
         }

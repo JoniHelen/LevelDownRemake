@@ -216,7 +216,7 @@ MonoBehaviour:
         Category01: 0
         Category02: 0
         Category03: 0
-        Category04: 1
+        Category04: 0
         Category05: 0
         Category06: 0
         Category07: 0
@@ -243,7 +243,7 @@ MonoBehaviour:
         Category28: 0
         Category29: 0
         Category30: 0
-        Category31: 0
+        Category31: 1
     m_CustomMaterialTags:
       m_Override: 0
       m_Value:

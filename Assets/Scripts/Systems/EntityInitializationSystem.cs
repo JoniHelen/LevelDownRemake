@@ -55,7 +55,7 @@ namespace LevelDown.Systems
             colliderTall.Value.SetCollisionFilter(new CollisionFilter
             {
                 BelongsTo = 1u << 3, // TallFloor
-                CollidesWith = uint.MaxValue ^ (1u << 3 | 1u << 2), // Everything except floors
+                CollidesWith = 1u << 31 | 1u << 4,
                 GroupIndex = 0
             });
 

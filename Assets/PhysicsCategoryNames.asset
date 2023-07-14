@@ -17,8 +17,8 @@ MonoBehaviour:
   - Enemy
   - SmallFloor
   - TallFloor
-  - 
-  - 
+  - Projectile
+  - Initialized
   - 
   - 
   - 

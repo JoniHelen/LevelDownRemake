@@ -9,6 +9,7 @@ namespace LevelDown.Components.Singletons
     /// </summary>
     public struct PlayerInputData : IComponentData
     {
+        public InputDevice CurrentInputDevice;
         public float InputLength;
         public float MovementSpeed;
         public float2 MovementDirection;

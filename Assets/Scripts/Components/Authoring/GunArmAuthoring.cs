@@ -2,7 +2,7 @@ using Unity.Entities;
 using UnityEngine;
 using LevelDown.Components.Tags;
 
-namespace LevelDown.Components
+namespace LevelDown.Components.Authoring
 {
     public class GunArmAuthoring : MonoBehaviour
     {

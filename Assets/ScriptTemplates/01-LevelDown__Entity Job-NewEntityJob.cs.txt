@@ -1,0 +1,14 @@
+using Unity.Entities;
+using Unity.Burst;
+
+namespace #NAMESPACE#
+{
+    [BurstCompile]
+    public partial struct #SCRIPTNAME# : IJobEntity
+    {
+        public void Execute()
+        {
+        #NOTRIM#
+        }
+    }
+}

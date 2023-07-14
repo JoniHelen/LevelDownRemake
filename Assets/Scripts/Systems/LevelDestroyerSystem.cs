@@ -49,7 +49,8 @@ namespace LevelDown.Systems
 
                 // Overlap a sphere to destory the level
                 _ = SystemAPI.GetSingleton<PhysicsWorldSingleton>()
-                    .OverlapSphere(0, _targetRadius * (timeSinceStart / _duration), ref distanceHits, CollisionFilter.Default);
+                    .OverlapSphere(0, _targetRadius * (timeSinceStart / _duration), ref distanceHits,
+                    new CollisionFilter { BelongsTo = 1u << 31, CollidesWith = 1u << 2 | 1u << 3, GroupIndex = 0 });
 
                 JobHandle destroyerHandle = new LevelDestroyerJob {
                     Time = SystemAPI.Time.ElapsedTime,

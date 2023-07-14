@@ -12,7 +12,7 @@ namespace LevelDown.Jobs
     /// <summary>
     /// Stops initialized floor tiles at the proper point in space.
     /// </summary>
-    [BurstCompile, WithOptions(EntityQueryOptions.IncludeDisabledEntities), WithAll(typeof(Projectile))]
+    [BurstCompile, WithOptions(EntityQueryOptions.IncludeDisabledEntities), WithAll(typeof(Projectile)), WithDisabled(typeof(ColorExplosion))]
     public partial struct ProjectileInitializationJob : IJobEntity
     {
         [ReadOnly] public NativeArray<ProjectileDescriptor> Descriptors;
@@ -25,7 +25,7 @@ namespace LevelDown.Jobs
             var descriptor = Descriptors[entityIndex];
 
             rigidBody.Position = new float3(descriptor.Position, -1);
-            rigidBody.LinearVelocity = new float3(descriptor.Direction, 0) * 10;
+            rigidBody.LinearVelocity = new float3(descriptor.Direction, 0) * 20;
 
             Ecb.SetEnabled(key, rigidBody.Entity, true);
         }

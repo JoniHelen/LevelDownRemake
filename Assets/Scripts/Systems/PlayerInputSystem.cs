@@ -4,33 +4,73 @@ using Unity.Transforms;
 using Unity.Mathematics;
 using UnityEngine.InputSystem;
 using LevelDown.Components.Singletons;
+using LevelDown.Components.Managed;
 using LevelDown.Input;
+using InputDevice = LevelDown.Input.InputDevice;
 
 namespace LevelDown.Systems
 {
     [UpdateInGroup(typeof(InputSystemGroup))]
     public partial struct PlayerInputSystem : ISystem
     {
-        public void OnCreate(ref SystemState state) => state.RequireForUpdate<PlayerInputData>();
+        private float _controllerDeadZoneThreshold;
+
+        public void OnCreate(ref SystemState state)
+        {
+            state.RequireForUpdate<PlayerInputData>();
+            state.RequireForUpdate<Dropdown>();
+
+            _controllerDeadZoneThreshold = 0.1f;
+        }
 
         public void OnUpdate(ref SystemState state)
         {
+            var dropdown = SystemAPI.ManagedAPI.GetSingleton<Dropdown>();
+
             foreach(var (input, local) in SystemAPI.Query<RefRW<PlayerInputData>, LocalTransform>())
             {
-                float2 movementInput = GetMovementInput();
+                input.ValueRW.CurrentInputDevice = (InputDevice)dropdown.Value.value;
+
+                float2 movementInput = GetMovementInput(input.ValueRO.CurrentInputDevice);
+
                 // Input length is used with controllers for normalized movement
-                input.ValueRW.InputLength = math.clamp(math.length(movementInput), 0, 1);
+                var length = math.length(movementInput);
+                var processedLength = length < _controllerDeadZoneThreshold ? 0 : length;
+
+                input.ValueRW.InputLength = math.min(processedLength, 1);
                 input.ValueRW.MovementDirection = math.normalizesafe(movementInput);
-                input.ValueRW.AimDirection = GetAimDirection(local.Position);
-                input.ValueRW.FireButton = new InputButton { WasPressedThisFrame = Mouse.current.leftButton.wasPressedThisFrame };
+                input.ValueRW.AimDirection = 
+                    GetAimDirection(input.ValueRO.CurrentInputDevice, local.Position, input.ValueRO.AimDirection);
+                input.ValueRW.FireButton = GetFireButton(input.ValueRO.CurrentInputDevice);
             }
         }
 
-        private float2 GetAimDirection(float3 playerPos)
+        private InputButton GetFireButton(InputDevice device) => device switch
         {
-            var screenRay = Camera.main.ScreenPointToRay(Mouse.current.position.ReadUnprocessedValue());
-            var mouseWPos = Intersect(new float3(0, 0, -1), new float3(0, 0, -1), screenRay.origin, screenRay.direction);
-            return math.normalizesafe((mouseWPos - playerPos).xy);
+            InputDevice.Keyboard => Mouse.current.leftButton,
+            InputDevice.Gamepad => Gamepad.current.rightTrigger,
+            _ => default
+        };
+
+    private float2 GetAimDirection(InputDevice device, float3 playerPos, float2 prevDir)
+        {
+            switch (device)
+            {
+                case InputDevice.Keyboard:
+                    var screenRay = Camera.main.ScreenPointToRay(Mouse.current.position.ReadUnprocessedValue());
+                    var mouseWPos = Intersect(new float3(0, 0, -1), new float3(0, 0, -1), screenRay.origin, screenRay.direction);
+                    return math.normalizesafe((mouseWPos - playerPos).xy);
+
+                case InputDevice.Gamepad:
+                    var input = Gamepad.current.rightStick.ReadUnprocessedValue();
+                    if (math.lengthsq(input) < _controllerDeadZoneThreshold * _controllerDeadZoneThreshold)
+                        return prevDir;
+                    else
+                        return math.normalizesafe(input);
+
+                default:
+                    return 0;
+            }
         }
 
         float3 Intersect(float3 planeP, float3 planeN, float3 rayP, float3 rayD)
@@ -40,23 +80,33 @@ namespace LevelDown.Systems
             return rayP + t * rayD;
         }
 
-        private float2 GetMovementInput()
+        private float2 GetMovementInput(InputDevice device)
         {
-            float2 input = 0;
+            switch (device)
+            {
+                case InputDevice.Keyboard:
+                    float2 input = 0;
 
-            if (Keyboard.current[Key.W].isPressed)
-                input += new float2(0, 1);
+                    if (Keyboard.current[Key.W].isPressed)
+                        input += new float2(0, 1);
 
-            if (Keyboard.current[Key.A].isPressed)
-                input += new float2(-1, 0);
+                    if (Keyboard.current[Key.A].isPressed)
+                        input += new float2(-1, 0);
 
-            if (Keyboard.current[Key.S].isPressed)
-                input += new float2(0, -1);
+                    if (Keyboard.current[Key.S].isPressed)
+                        input += new float2(0, -1);
 
-            if (Keyboard.current[Key.D].isPressed)
-                input += new float2(1, 0);
+                    if (Keyboard.current[Key.D].isPressed)
+                        input += new float2(1, 0);
 
-            return input;
+                    return input;
+
+                case InputDevice.Gamepad:
+                    return Gamepad.current.leftStick.ReadUnprocessedValue();
+
+                default:
+                    return 0;
+            }
         }
     }
 }
