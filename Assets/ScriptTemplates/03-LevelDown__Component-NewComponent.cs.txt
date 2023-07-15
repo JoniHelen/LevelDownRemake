@@ -1,9 +1,6 @@
 using Unity.Entities;
 
-namespace #NAMESPACE#
+public struct #SCRIPTNAME# : IComponentData
 {
-    public struct #SCRIPTNAME# : IComponentData
-    {
-    #NOTRIM#
-    }
+	#NOTRIM#
 }

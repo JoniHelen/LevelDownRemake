@@ -1,26 +1,24 @@
 using Unity.Entities;
 using Unity.Burst;
+using LevelDown.Jobs;
 
-namespace #NAMESPACE#
+public partial struct #SCRIPTNAME# : ISystem
 {
-    public partial struct #SCRIPTNAME# : ISystem
+    [BurstCompile]
+    public void OnCreate(ref SystemState state)
     {
-        [BurstCompile]
-        public void OnCreate(ref SystemState state)
-        {
         #NOTRIM#
-        }
-
-        [BurstCompile]
-        public void OnUpdate(ref SystemState state)
-        {
-        #NOTRIM#
-        }
-
-        [BurstCompile]
-        public void OnDestroy(ref SystemState state)
-        {
-        #NOTRIM#
-        }
     }
-}
+
+    [BurstCompile]
+    public void OnUpdate(ref SystemState state)
+    {
+        #NOTRIM#
+    }
+
+    [BurstCompile]
+    public void OnDestroy(ref SystemState state)
+    {
+        #NOTRIM#
+    }
+}S
