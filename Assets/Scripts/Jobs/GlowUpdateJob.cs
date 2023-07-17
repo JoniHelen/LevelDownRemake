@@ -23,7 +23,7 @@ namespace LevelDown.Jobs
 
             // Lerp values based on time elapsed
             control.Color = finished ? control.BaseColor : Color.Lerp(control.FlashColor, control.BaseColor, t);
-            control.Brightness = finished ? baseGlow : math.lerp(15f, baseGlow, t);
+            control.Brightness = finished ? baseGlow : math.lerp(control.FlashBrightness, baseGlow, t);
 
             if (finished)
                 control.Enabled = false;

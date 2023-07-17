@@ -1,11 +1,12 @@
 using Unity.Entities;
 using UnityEngine;
+using UnityEngine.VFX;
 
 namespace LevelDown.Components.Authoring
 {
     public class ProjectileAuthoring : MonoBehaviour
     {
-
+        public VisualEffect effect;
     }
 
     public class ProjectileBaker : Baker<ProjectileAuthoring>
@@ -22,6 +23,8 @@ namespace LevelDown.Components.Authoring
             });
             SetComponentEnabled<ColorExplosion>(entity, false);
             AddBuffer<EntityBufferData>(entity);
+
+            AddComponentObject(entity, new Managed.ParticleComponent { Effect = authoring.effect });
         }
     }
 }

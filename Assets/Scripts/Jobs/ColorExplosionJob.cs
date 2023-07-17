@@ -45,6 +45,7 @@ namespace LevelDown.Jobs
 
                     var flash = FlashLookup.GetRefRW(hit.Entity);
                     flash.ValueRW.StartTime = Time;
+                    flash.ValueRW.FlashBrightness = 5f;
                     flash.ValueRW.FlashColor = UnityEngine.Color.HSVToRGB(RandomLookup[hit.Entity].Value.NextFloat(), 1, 1);
                     FlashLookup.SetComponentEnabled(hit.Entity, true);
                 }

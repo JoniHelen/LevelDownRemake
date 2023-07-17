@@ -11,6 +11,7 @@ namespace LevelDown.Components
         public Color FlashColor;
         public Color BaseColor;
         public float Duration;
+        public float FlashBrightness;
         public double StartTime;
     }
 }

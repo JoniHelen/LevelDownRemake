@@ -1,13 +1,15 @@
 using Unity.Entities;
 using Unity.Burst;
 using LevelDown.Components;
-Using LevelDown.Components.Aspects;
+using LevelDown.Components.Aspects;
 
-[BurstCompile]
-public partial struct #SCRIPTNAME# : IJobEntity
-{
-    public void Execute()
+#ROOTNAMESPACEBEGIN#
+    [BurstCompile]
+    public partial struct #SCRIPTNAME# : IJobEntity
     {
-        #NOTRIM#
+        public void Execute()
+        {
+            #NOTRIM#
+        }
     }
-}
+#ROOTNAMESPACEEND#

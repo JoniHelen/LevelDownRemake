@@ -298,7 +298,7 @@ MonoBehaviour:
     m_CollidesWithCategories:
       m_Override: 0
       m_Value:
-        Category00: 0
+        Category00: 1
         Category01: 0
         Category02: 0
         Category03: 0
@@ -548,7 +548,7 @@ MonoBehaviour:
     m_CollidesWithCategories:
       m_Override: 0
       m_Value:
-        Category00: 0
+        Category00: 1
         Category01: 0
         Category02: 0
         Category03: 0
@@ -899,7 +899,7 @@ MonoBehaviour:
     m_CollidesWithCategories:
       m_Override: 0
       m_Value:
-        Category00: 0
+        Category00: 1
         Category01: 0
         Category02: 0
         Category03: 0
@@ -1413,7 +1413,7 @@ MonoBehaviour:
     m_CollidesWithCategories:
       m_Override: 0
       m_Value:
-        Category00: 0
+        Category00: 1
         Category01: 0
         Category02: 0
         Category03: 0

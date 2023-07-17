@@ -17,6 +17,12 @@ namespace LevelDown.Components.Aspects
             set => _enabled.ValueRW = value;
         }
 
+        public float FlashBrightness
+        {
+            get => _ref.ValueRO.FlashBrightness;
+            set => _ref.ValueRW.FlashBrightness = value;
+        }
+
         public Color FlashColor
         {
             get => _ref.ValueRO.FlashColor;

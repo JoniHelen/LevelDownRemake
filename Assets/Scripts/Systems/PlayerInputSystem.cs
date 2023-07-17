@@ -20,6 +20,8 @@ namespace LevelDown.Systems
             state.RequireForUpdate<PlayerInputData>();
             state.RequireForUpdate<Dropdown>();
 
+            Cursor.lockState = CursorLockMode.Confined;
+
             _controllerDeadZoneThreshold = 0.1f;
         }
 

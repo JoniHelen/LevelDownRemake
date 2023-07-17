@@ -48,6 +48,7 @@ namespace LevelDown.Jobs
             rigidBody.IsKinematic = false;
             flash.StartTime = shrink.StartTime = Time;
             flash.Enabled = shrink.Enabled = true;
+            flash.FlashBrightness = 15f;
             flash.FlashColor = UnityEngine.Color.HSVToRGB(random.Value.NextFloat(), 1, 1);
         }
     }
