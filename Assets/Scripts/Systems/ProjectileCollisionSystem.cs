@@ -9,6 +9,7 @@ using EndSimulation =
 
 namespace LevelDown.Systems
 {
+    [UpdateInGroup(typeof(ManagedSystemGroup))]
     public partial struct ProjectileCollisionSystem : ISystem
     {
         private ComponentLookup<Projectile> _projectileLookup;
@@ -41,14 +42,14 @@ namespace LevelDown.Systems
                     Ecb.SetEnabled(collision.EntityA, false);
                     _explosionLookup.SetComponentEnabled(collision.EntityA, true);
                     _explosionLookup.GetRefRW(collision.EntityA).ValueRW.StartTime = SystemAPI.Time.ElapsedTime;
-                    SystemAPI.ManagedAPI.GetComponent<ParticleComponent>(collision.EntityA).Play(_transformLookup[collision.EntityA].Position.xy);
+                    SystemAPI.ManagedAPI.GetComponent<ParticleComponent>(collision.EntityA).Play(_transformLookup.GetRefRO(collision.EntityA).ValueRO.Position.xy);
                 }
                 else if (_projectileLookup.HasComponent(collision.EntityB))
                 {
                     Ecb.SetEnabled(collision.EntityB, false);
                     _explosionLookup.SetComponentEnabled(collision.EntityB, true);
                     _explosionLookup.GetRefRW(collision.EntityB).ValueRW.StartTime = SystemAPI.Time.ElapsedTime;
-                    SystemAPI.ManagedAPI.GetComponent<ParticleComponent>(collision.EntityB).Play(_transformLookup[collision.EntityB].Position.xy);
+                    SystemAPI.ManagedAPI.GetComponent<ParticleComponent>(collision.EntityB).Play(_transformLookup.GetRefRO(collision.EntityB).ValueRO.Position.xy);
                 }
             }
         }

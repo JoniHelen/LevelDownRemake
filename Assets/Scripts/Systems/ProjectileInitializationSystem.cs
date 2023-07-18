@@ -5,8 +5,8 @@ using Unity.Jobs;
 using LevelDown.Components;
 using LevelDown.Components.Singletons;
 using LevelDown.Jobs;
-using BeginSimulation = 
-    Unity.Entities.BeginSimulationEntityCommandBufferSystem.Singleton;
+using EndSimulation = 
+    Unity.Entities.EndSimulationEntityCommandBufferSystem.Singleton;
 
 namespace LevelDown.Systems
 {
@@ -53,7 +53,7 @@ namespace LevelDown.Systems
             JobHandle init = new ProjectileInitializationJob
             {
                 Descriptors = requiredProjectiles,
-                Ecb = SystemAPI.GetSingleton<BeginSimulation>()
+                Ecb = SystemAPI.GetSingleton<EndSimulation>()
                 .CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter()
             }.ScheduleParallel(state.Dependency);
 
