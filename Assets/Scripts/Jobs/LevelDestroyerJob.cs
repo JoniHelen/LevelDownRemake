@@ -1,26 +1,38 @@
 using Unity.Entities;
 using Unity.Collections;
+using Unity.Jobs;
 using Unity.Burst;
 using Unity.Physics;
-using Unity.Physics.Aspects;
 using LevelDown.Components;
-using LevelDown.Components.Aspects;
 
 namespace LevelDown.Jobs
 {
     /// <summary>
     /// "Destroys" the floor tiles that get hit during level destruction.
     /// </summary>
-    [BurstCompile, WithOptions(EntityQueryOptions.IgnoreComponentEnabledState)]
-    public partial struct LevelDestroyerJob : IJobEntity
+    [BurstCompile]
+    public partial struct LevelDestroyerJob : IJobParallelFor
     {
         public double Time;
         public NativeList<Entity>.ParallelWriter Entities;
-        [ReadOnly] public NativeList<DistanceHit> Hits;
+        [ReadOnly] public NativeArray<Entity> Hits;
 
-        public void Execute(Entity entity, ref RandomValue random, RigidBodyAspect rigidBody,
-            ColorFlashAspect flash, ShrinkingAspect shrink)
+        [NativeDisableParallelForRestriction]
+        public ComponentLookup<RandomValue> RandomValues;
+
+        [NativeDisableParallelForRestriction]
+        public ComponentLookup<PhysicsMassOverride> MassOverrides;
+
+        [NativeDisableParallelForRestriction]
+        public ComponentLookup<ColorFlash> Flashes;
+
+        [NativeDisableParallelForRestriction]
+        public ComponentLookup<Shrinking> Shrinks;
+
+        public void Execute(int index)
         {
+            var entity = Hits[index];
+
             // Find if the entity has already been "destroyed"
             unsafe
             {
@@ -29,27 +41,18 @@ namespace LevelDown.Jobs
                     if (data->ElementAt(i) == entity) return;
             }
 
-            // Find if the entity was hit this frame
-            var hitEntity = Entity.Null;
-
-            for (var i = 0; i < Hits.Length; i++)
-            {
-                if (Hits[i].Entity == entity)
-                {
-                    hitEntity = Hits[i].Entity;
-                    break;
-                }
-            }
-
-            if (hitEntity == Entity.Null) return;
-
             // Flash a color and start "destruction"
-            Entities.AddNoResize(hitEntity);
-            rigidBody.IsKinematic = false;
-            flash.StartTime = shrink.StartTime = Time;
-            flash.Enabled = shrink.Enabled = true;
-            flash.FlashBrightness = 15f;
-            flash.FlashColor = UnityEngine.Color.HSVToRGB(random.Value.NextFloat(), 1, 1);
+            Entities.AddNoResize(entity);
+            MassOverrides.GetRefRW(entity).ValueRW.IsKinematic = 0;
+
+            var flash = Flashes.GetRefRW(entity);
+            var shrink = Shrinks.GetRefRW(entity);
+
+            flash.ValueRW.StartTime = shrink.ValueRW.StartTime = Time;
+            Flashes.SetComponentEnabled(entity, true);
+            Shrinks.SetComponentEnabled(entity, true);
+            flash.ValueRW.FlashBrightness = 15f;
+            flash.ValueRW.FlashColor = UnityEngine.Color.HSVToRGB(RandomValues.GetRefRW(entity).ValueRW.Value.NextFloat(), 1, 1);
         }
     }
 }

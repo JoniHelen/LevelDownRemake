@@ -2,8 +2,11 @@ using Unity.Entities;
 using Unity.Physics;
 using Unity.Burst;
 using Unity.Jobs;
+using Unity.Transforms;
 using Unity.Collections;
 using LevelDown.Components.Triggers;
+using LevelDown.Components.Tags;
+using LevelDown.Components;
 using LevelDown.Jobs;
 using EndSimulation =
     Unity.Entities.EndSimulationEntityCommandBufferSystem.Singleton;
@@ -15,6 +18,11 @@ namespace LevelDown.Systems
     /// </summary>
     public partial struct LevelDestroyerSystem : ISystem, ISystemStartStop
     {
+        private ComponentLookup<PhysicsMassOverride> _massOverrideLookup;
+        private ComponentLookup<RandomValue> _randomLookup;
+        private ComponentLookup<ColorFlash> _flashLookup;
+        private ComponentLookup<Shrinking> _shrinkLookup;
+
         private NativeList<Entity> _entities;
 
         private double _startTime;
@@ -25,7 +33,12 @@ namespace LevelDown.Systems
         public void OnCreate(ref SystemState state)
         {
             _duration = 1;
-            _targetRadius = 22;
+            _targetRadius = 40;
+
+            _massOverrideLookup = state.GetComponentLookup<PhysicsMassOverride>();
+            _randomLookup = state.GetComponentLookup<RandomValue>();
+            _flashLookup = state.GetComponentLookup<ColorFlash>();
+            _shrinkLookup = state.GetComponentLookup<Shrinking>();
 
             state.RequireForUpdate<DestroyLevelTriggerTag>();
             _entities = new(600, Allocator.Persistent);
@@ -35,6 +48,11 @@ namespace LevelDown.Systems
         public void OnStartRunning(ref SystemState state)
         {
             _startTime = SystemAPI.Time.ElapsedTime;
+                state.EntityManager.SetEnabled(
+                    SystemAPI.QueryBuilder()
+                    .WithAll<LevelDestroyer>()
+                    .WithOptions(EntityQueryOptions.IncludeDisabledEntities).Build()
+                    .GetSingletonEntity(), true);
             _entities.Clear();
         }
 
@@ -45,20 +63,31 @@ namespace LevelDown.Systems
 
             if (timeSinceStart < _duration)
             {
-                NativeList<DistanceHit> distanceHits = new(Allocator.TempJob);
+                var destroyer = SystemAPI.GetSingletonEntity<LevelDestroyer>();
+                SystemAPI.GetComponentRW<LocalTransform>(destroyer).ValueRW.Scale = timeSinceStart / _duration * _targetRadius;
 
-                // Overlap a sphere to destory the level
-                _ = SystemAPI.GetSingleton<PhysicsWorldSingleton>()
-                    .OverlapSphere(0, _targetRadius * (timeSinceStart / _duration), ref distanceHits,
-                    new CollisionFilter { BelongsTo = 1u << 31, CollidesWith = 1u << 2 | 1u << 3, GroupIndex = 0 });
+                var hitEntities = new NativeList<Entity>(Allocator.TempJob);
+
+                foreach (var ev in SystemAPI.GetSingleton<SimulationSingleton>().AsSimulation().TriggerEvents)
+                    if (SystemAPI.HasComponent<Floor>(ev.EntityA) && SystemAPI.HasComponent<LevelDestroyer>(ev.EntityB))
+                        hitEntities.Add(ev.EntityA);
+
+                _massOverrideLookup.Update(ref state);
+                _randomLookup.Update(ref state);
+                _flashLookup.Update(ref state);
+                _shrinkLookup.Update(ref state);
 
                 JobHandle destroyerHandle = new LevelDestroyerJob {
                     Time = SystemAPI.Time.ElapsedTime,
-                    Hits = distanceHits,
-                    Entities = _entities.AsParallelWriter()
-                }.ScheduleParallel(state.Dependency);
+                    Hits = hitEntities.AsArray(),
+                    Entities = _entities.AsParallelWriter(),
+                    MassOverrides = _massOverrideLookup,
+                    RandomValues = _randomLookup,
+                    Flashes = _flashLookup,
+                    Shrinks = _shrinkLookup
+                }.Schedule(hitEntities.Length, 8, state.Dependency);
 
-                state.Dependency = distanceHits.Dispose(destroyerHandle);
+                state.Dependency = hitEntities.Dispose(destroyerHandle);
             }
             else
             {
@@ -67,6 +96,11 @@ namespace LevelDown.Systems
                     .CreateCommandBuffer(state.WorldUnmanaged)
                     .RemoveComponent<DestroyLevelTriggerTag>(
                     SystemAPI.GetSingletonEntity<TriggerTagSingleton>());
+
+                var destroyer = SystemAPI.GetSingletonEntity<LevelDestroyer>();
+                state.EntityManager.SetEnabled(destroyer, false);
+                SystemAPI.GetComponentRW<LocalTransform>(destroyer).ValueRW.Scale = 0.0001f;
+
             }
         }
 

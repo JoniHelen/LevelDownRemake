@@ -26,6 +26,6 @@ namespace LevelDown.Components.Managed
 
         public object Clone() => new ParticleComponent { Effect = UnityEngine.Object.Instantiate(Effect) };
 
-        public void Dispose() => UnityEngine.Object.Destroy(Effect);
+        public void Dispose() => UnityEngine.Object.DestroyImmediate(Effect);
     }
 }

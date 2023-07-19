@@ -16,4 +16,9 @@ namespace LevelDown.Components.Tags
     /// A tag component for the player's gun.
     /// </summary>
     public struct Gun : IComponentData { }
+
+    /// <summary>
+    /// A tag component for level destroyer.
+    /// </summary>
+    public struct LevelDestroyer : IComponentData { }
 }

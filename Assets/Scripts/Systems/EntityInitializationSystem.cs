@@ -33,12 +33,6 @@ namespace LevelDown.Systems
 
             // Test Singleton
             state.EntityManager.CreateSingleton(new TestTrigger { Interval = 4, GenerateTime = 2 });
-
-            state.EntityManager.SetComponentData(state.EntityManager.CreateEntity(typeof(LocalTransform), typeof(PhysicsCollider)), new PhysicsCollider
-            {
-                Value = SphereCollider.Create(new SphereGeometry { Center = 0, Radius = 1 })
-            });
-
             #endregion
         }
 
