@@ -6,7 +6,7 @@ namespace LevelDown.Components.Authoring
 {
     public class ProjectileAuthoring : MonoBehaviour
     {
-        public VisualEffect effect;
+        public GameObject effect;
     }
 
     public class ProjectileBaker : Baker<ProjectileAuthoring>
@@ -24,7 +24,7 @@ namespace LevelDown.Components.Authoring
             SetComponentEnabled<ColorExplosion>(entity, false);
             AddBuffer<EntityBufferData>(entity);
 
-            AddComponentObject(entity, new Managed.ParticleComponent { Effect = authoring.effect });
+            AddComponentObject(entity, new Managed.ParticleComponent { Obj = authoring.effect });
         }
     }
 }
