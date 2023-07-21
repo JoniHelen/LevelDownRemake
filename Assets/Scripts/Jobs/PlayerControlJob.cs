@@ -14,7 +14,7 @@ namespace LevelDown.Jobs
     public partial struct PlayerControlJob : IJobEntity
     {
         [WriteOnly] public NativeReference<float2> Aim;
-        public NativeQueue<ProjectileDescriptor>.ParallelWriter ProjectileWriter;
+        [WriteOnly] public NativeList<ProjectileDescriptor> ProjectileWriter;
         public float2 GunPos;
 
         public void Execute(PlayerControlAspect controls)
@@ -22,7 +22,7 @@ namespace LevelDown.Jobs
             controls.Update();
             Aim.Value = controls.AimDirection;
             if (controls.FireButton.WasPressedThisFrame)
-                ProjectileWriter.Enqueue(new ProjectileDescriptor
+                ProjectileWriter.Add(new ProjectileDescriptor
                 {
                     Position = GunPos,
                     Direction = controls.AimDirection

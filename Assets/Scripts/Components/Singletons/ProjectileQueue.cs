@@ -9,6 +9,7 @@ namespace LevelDown.Components.Singletons
     /// </summary>
     public struct ProjectileQueue : IComponentData
     {
-        public NativeQueue<ProjectileDescriptor> Projectiles;
+        public NativeList<ProjectileDescriptor> Projectiles;
+        public NativeList<ExplosionDescriptor> Explosions;
     }
 }

@@ -1,6 +1,5 @@
 using Unity.Entities;
 using UnityEngine;
-using UnityEngine.VFX;
 
 namespace LevelDown.Components.Authoring
 {
@@ -16,12 +15,6 @@ namespace LevelDown.Components.Authoring
             var entity = GetEntity(TransformUsageFlags.Dynamic);
 
             AddComponent<Projectile>(entity);
-            AddComponent(entity, new ColorExplosion
-            {
-                Duration = 0.1f,
-                TargetSize = 1.5f
-            });
-            SetComponentEnabled<ColorExplosion>(entity, false);
             AddBuffer<EntityBufferData>(entity);
 
             AddComponentObject(entity, new Managed.ParticleComponent { Obj = authoring.effect });

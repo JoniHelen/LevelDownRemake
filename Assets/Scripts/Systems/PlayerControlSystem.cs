@@ -24,7 +24,7 @@ namespace LevelDown.Systems
 
             JobHandle control = new PlayerControlJob { Aim = aimDir,
                 GunPos = SystemAPI.GetComponent<LocalToWorld>(SystemAPI.GetSingletonEntity<Gun>()).Position.xy,
-                ProjectileWriter = SystemAPI.GetSingleton<ProjectileQueue>().Projectiles.AsParallelWriter()
+                ProjectileWriter = SystemAPI.GetSingleton<ProjectileQueue>().Projectiles
                 }.Schedule(state.Dependency);
             JobHandle rotation = new GunRotationJob { Input = aimDir }.Schedule(control);
             state.Dependency = aimDir.Dispose(rotation);

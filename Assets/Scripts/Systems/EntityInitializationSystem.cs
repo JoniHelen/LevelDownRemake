@@ -29,7 +29,10 @@ namespace LevelDown.Systems
             state.EntityManager.CreateSingleton<TriggerTagSingleton>();
 
             // Entity queue
-            state.EntityManager.CreateSingleton(new ProjectileQueue { Projectiles = new NativeQueue<Input.ProjectileDescriptor>(Allocator.Persistent) });
+            state.EntityManager.CreateSingleton(new ProjectileQueue { 
+                Projectiles = new NativeList<Input.ProjectileDescriptor>(Allocator.Persistent),
+                Explosions = new NativeList<Input.ExplosionDescriptor>(Allocator.Persistent),
+            });
 
             // Test Singleton
             state.EntityManager.CreateSingleton(new TestTrigger { Interval = 4, GenerateTime = 2 });

@@ -24,18 +24,27 @@ namespace LevelDown.Systems
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            var prefab = SystemAPI.QueryBuilder().WithAll<Projectile, Prefab>()
+            var projectilePrefab = SystemAPI.QueryBuilder().WithAll<Projectile, Prefab>()
                 .WithOptions(EntityQueryOptions.IncludePrefab | EntityQueryOptions.IncludeDisabledEntities)
                 .Build().GetSingletonEntity();
 
-            var entityCount = SystemAPI.QueryBuilder().WithAll<Projectile, Disabled>()
-                .WithDisabled<ColorExplosion>().WithOptions(EntityQueryOptions.IncludeDisabledEntities).Build()
+            var explosionPrefab = SystemAPI.QueryBuilder().WithAll<ColorExplosion, Prefab>()
+                .WithOptions(EntityQueryOptions.IncludePrefab | EntityQueryOptions.IncludeDisabledEntities | EntityQueryOptions.IgnoreComponentEnabledState)
+                .Build().GetSingletonEntity();
+
+            var projectileCount = SystemAPI.QueryBuilder().WithAll<Projectile, Disabled>()
+                .WithOptions(EntityQueryOptions.IncludeDisabledEntities).Build()
+                .CalculateEntityCount();
+
+            var explosionCount = SystemAPI.QueryBuilder().WithAll<ColorExplosion, Disabled>()
+                .WithOptions(EntityQueryOptions.IncludeDisabledEntities | EntityQueryOptions.IgnoreComponentEnabledState).Build()
                 .CalculateEntityCount();
 
             state.CompleteDependency();
-            var queue = SystemAPI.GetSingleton<ProjectileQueue>().Projectiles;
+            var singleton = SystemAPI.GetSingleton<ProjectileQueue>();
 
-            var requiredProjectiles = queue.ToArray(Allocator.TempJob);
+            var requiredProjectiles = singleton.Projectiles.ToArray(Allocator.TempJob);
+            var requiredExplosions = singleton.Explosions.ToArray(Allocator.TempJob);
 
             if (requiredProjectiles.Length == 0)
             {
@@ -43,21 +52,32 @@ namespace LevelDown.Systems
                 return;
             }
 
-            queue.Clear();
+            singleton.Projectiles.Clear();
 
-            if (entityCount < requiredProjectiles.Length)
+            if (projectileCount < requiredProjectiles.Length)
+                state.EntityManager.Instantiate(projectilePrefab, requiredProjectiles.Length - projectileCount, Allocator.Temp);
+
+            if (explosionCount < requiredProjectiles.Length)
+                state.EntityManager.Instantiate(explosionPrefab, requiredProjectiles.Length - explosionCount, Allocator.Temp);
+
+            JobHandle expolsionInit = new ExplosionInitializationJob
             {
-                state.EntityManager.Instantiate(prefab, requiredProjectiles.Length - entityCount, Allocator.Temp);
-            }
+                Descriptors = requiredExplosions,
+                Ecb = SystemAPI.GetSingleton<EndSimulation>()
+                .CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter(),
+                Time = SystemAPI.Time.ElapsedTime
+            }.Schedule(state.Dependency);
 
-            JobHandle init = new ProjectileInitializationJob
+            JobHandle projectileInit = new ProjectileInitializationJob
             {
                 Descriptors = requiredProjectiles,
                 Ecb = SystemAPI.GetSingleton<EndSimulation>()
                 .CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter()
-            }.ScheduleParallel(state.Dependency);
+            }.ScheduleParallel(expolsionInit);
 
-            state.Dependency = requiredProjectiles.Dispose(init);
+            state.Dependency = JobHandle.CombineDependencies(
+                requiredProjectiles.Dispose(projectileInit),
+                requiredExplosions.Dispose(expolsionInit));
         }
     }
 }

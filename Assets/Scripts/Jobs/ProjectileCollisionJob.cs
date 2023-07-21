@@ -1,7 +1,10 @@
 using Unity.Physics;
 using Unity.Burst;
 using Unity.Entities;
+using Unity.Collections;
 using LevelDown.Components;
+using LevelDown.Input;
+using Unity.Transforms;
 
 namespace LevelDown.Jobs
 {
@@ -9,7 +12,8 @@ namespace LevelDown.Jobs
     public struct ProjectileCollisionJob : ICollisionEventsJob
     {
         public ComponentLookup<Projectile> Projectiles;
-        public ComponentLookup<ColorExplosion> Explosions;
+        public ComponentLookup<LocalTransform> LocalTransforms;
+        [WriteOnly] public NativeList<ExplosionDescriptor> Explosions;
         public EntityCommandBuffer Ecb;
         public double Time;
 
@@ -18,14 +22,22 @@ namespace LevelDown.Jobs
             if (Projectiles.HasComponent(collisionEvent.EntityA))
             {
                 Ecb.SetEnabled(collisionEvent.EntityA, false);
-                Explosions.SetComponentEnabled(collisionEvent.EntityA, true);
-                Explosions.GetRefRW(collisionEvent.EntityA).ValueRW.StartTime = Time;
+                Explosions.Add(new ExplosionDescriptor
+                {
+                    Duration = 0.1f,
+                    Size = 1.5f,
+                    Position = LocalTransforms[collisionEvent.EntityA].Position.xy
+                });
             }
             else if (Projectiles.HasComponent(collisionEvent.EntityB))
             {
                 Ecb.SetEnabled(collisionEvent.EntityB, false);
-                Explosions.SetComponentEnabled(collisionEvent.EntityB, true);
-                Explosions.GetRefRW(collisionEvent.EntityB).ValueRW.StartTime = Time;
+                Explosions.Add(new ExplosionDescriptor
+                {
+                    Duration = 0.1f,
+                    Size = 1.5f,
+                    Position = LocalTransforms[collisionEvent.EntityB].Position.xy
+                });
             }
         }
     }

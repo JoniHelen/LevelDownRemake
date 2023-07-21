@@ -3,7 +3,9 @@ using Unity.Physics;
 using Unity.Burst;
 using Unity.Transforms;
 using LevelDown.Components;
+using LevelDown.Components.Singletons;
 using LevelDown.Components.Managed;
+using LevelDown.Input;
 using EndSimulation =
     Unity.Entities.EndSimulationEntityCommandBufferSystem.Singleton;
 
@@ -32,6 +34,7 @@ namespace LevelDown.Systems
             _transformLookup.Update(ref state);
 
             var Ecb = SystemAPI.GetSingleton<EndSimulation>().CreateCommandBuffer(state.WorldUnmanaged);
+            var queue = SystemAPI.GetSingleton<ProjectileQueue>();
 
             state.CompleteDependency();
 
@@ -40,16 +43,26 @@ namespace LevelDown.Systems
                 if (_projectileLookup.HasComponent(collision.EntityA))
                 {
                     Ecb.SetEnabled(collision.EntityA, false);
-                    _explosionLookup.SetComponentEnabled(collision.EntityA, true);
-                    _explosionLookup.GetRefRW(collision.EntityA).ValueRW.StartTime = SystemAPI.Time.ElapsedTime;
-                    SystemAPI.ManagedAPI.GetComponent<ParticleComponent>(collision.EntityA).Play(_transformLookup.GetRefRO(collision.EntityA).ValueRO.Position.xy);
+                    queue.Explosions.Add(new ExplosionDescriptor
+                    {
+                        Duration = 0.1f,
+                        Size = 1.5f,
+                        Position = _transformLookup[collision.EntityA].Position.xy
+                    });
+                    SystemAPI.ManagedAPI.GetComponent<ParticleComponent>(collision.EntityA)
+                        .Play(_transformLookup[collision.EntityA].Position.xy);
                 }
                 else if (_projectileLookup.HasComponent(collision.EntityB))
                 {
                     Ecb.SetEnabled(collision.EntityB, false);
-                    _explosionLookup.SetComponentEnabled(collision.EntityB, true);
-                    _explosionLookup.GetRefRW(collision.EntityB).ValueRW.StartTime = SystemAPI.Time.ElapsedTime;
-                    SystemAPI.ManagedAPI.GetComponent<ParticleComponent>(collision.EntityB).Play(_transformLookup.GetRefRO(collision.EntityB).ValueRO.Position.xy);
+                    queue.Explosions.Add(new ExplosionDescriptor
+                    {
+                        Duration = 0.1f,
+                        Size = 1.5f,
+                        Position = _transformLookup[collision.EntityB].Position.xy
+                    });
+                    SystemAPI.ManagedAPI.GetComponent<ParticleComponent>(collision.EntityB)
+                        .Play(_transformLookup[collision.EntityB].Position.xy);
                 }
             }
         }
