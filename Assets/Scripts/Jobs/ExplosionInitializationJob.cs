@@ -4,6 +4,7 @@ using Unity.Collections;
 using Unity.Transforms;
 using Unity.Mathematics;
 using LevelDown.Components.Aspects;
+using LevelDown.Components;
 using LevelDown.Input;
 
 namespace LevelDown.Jobs
@@ -20,8 +21,6 @@ namespace LevelDown.Jobs
         {
             if (entityIndex >= Descriptors.Length) return;
 
-            Ecb.SetEnabled(key, entity, true);
-
             var descriptor = Descriptors[entityIndex];
 
             local.Position = new float3(descriptor.Position, -1);
@@ -30,6 +29,7 @@ namespace LevelDown.Jobs
             explosion.StartTime = Time;
             explosion.TargetSize = descriptor.Size;
             explosion.Duration = descriptor.Duration;
+            Ecb.SetEnabled(key, entity, true);
         }
     }
 }

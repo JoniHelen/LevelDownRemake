@@ -5,7 +5,7 @@ using LevelDown.Components.Aspects;
 
 namespace LevelDown.Jobs
 {
-    [BurstCompile, UpdateBefore(typeof(FixedStepSimulationSystemGroup))]
+    [BurstCompile]
     public partial struct ColorExplosionJob : IJobEntity
     {
         public double Time;

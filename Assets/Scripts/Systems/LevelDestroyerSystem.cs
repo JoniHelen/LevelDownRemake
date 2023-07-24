@@ -19,15 +19,29 @@ namespace LevelDown.Systems
     public partial struct LevelDestroyerSystem : ISystem, ISystemStartStop
     {
         private ComponentLookup<PhysicsMassOverride> _massOverrideLookup;
-        private ComponentLookup<RandomValue> _randomLookup;
-        private ComponentLookup<ColorFlash> _flashLookup;
         private ComponentLookup<Shrinking> _shrinkLookup;
 
-        private NativeList<Entity> _entities;
+        private NativeList<Entity> _destroyedEntities;
 
         private double _startTime;
         private float _duration;
         private float _targetRadius;
+
+        [BurstCompile]
+        private struct EntityDifferenceJob : IJobParallelFor
+        {
+            [ReadOnly] public NativeArray<Entity> NewEntities;
+            [ReadOnly] public NativeArray<Entity> DestroyedEntities;
+            public NativeList<Entity>.ParallelWriter Difference;
+            public void Execute(int index)
+            {
+                var entity = NewEntities[index];
+
+                if (DestroyedEntities.Contains(entity)) return;
+
+                Difference.AddNoResize(entity);
+            }
+        }
 
         [BurstCompile]
         public void OnCreate(ref SystemState state)
@@ -36,24 +50,24 @@ namespace LevelDown.Systems
             _targetRadius = 40;
 
             _massOverrideLookup = state.GetComponentLookup<PhysicsMassOverride>();
-            _randomLookup = state.GetComponentLookup<RandomValue>();
-            _flashLookup = state.GetComponentLookup<ColorFlash>();
             _shrinkLookup = state.GetComponentLookup<Shrinking>();
 
             state.RequireForUpdate<DestroyLevelTriggerTag>();
-            _entities = new(600, Allocator.Persistent);
+            _destroyedEntities = new(600, Allocator.Persistent);
         }
 
         [BurstCompile]
         public void OnStartRunning(ref SystemState state)
         {
             _startTime = SystemAPI.Time.ElapsedTime;
-                state.EntityManager.SetEnabled(
-                    SystemAPI.QueryBuilder()
+            var destroyer = SystemAPI.QueryBuilder()
                     .WithAll<LevelDestroyer>()
                     .WithOptions(EntityQueryOptions.IncludeDisabledEntities).Build()
-                    .GetSingletonEntity(), true);
-            _entities.Clear();
+                    .GetSingletonEntity();
+
+            state.EntityManager.SetEnabled(destroyer, true);
+            SystemAPI.GetBuffer<EntityBufferData>(destroyer).Clear();
+            _destroyedEntities.Clear();
         }
 
         [BurstCompile]
@@ -66,24 +80,26 @@ namespace LevelDown.Systems
                 var destroyer = SystemAPI.GetSingletonEntity<LevelDestroyer>();
                 SystemAPI.GetComponentRW<LocalTransform>(destroyer).ValueRW.Scale = timeSinceStart / _duration * _targetRadius;
 
-                var hitEntities = new NativeList<Entity>(Allocator.TempJob);
+                var hitEntities = new NativeList<Entity>(200, Allocator.TempJob);
+                var newEntities = SystemAPI.GetBuffer<EntityBufferData>(destroyer).Reinterpret<Entity>().AsNativeArray();
 
-                foreach (var ev in SystemAPI.GetSingleton<SimulationSingleton>().AsSimulation().TriggerEvents)
-                    if (SystemAPI.HasComponent<Floor>(ev.EntityA) && SystemAPI.HasComponent<LevelDestroyer>(ev.EntityB))
-                        hitEntities.Add(ev.EntityA);
+                JobHandle diff = new EntityDifferenceJob
+                {
+                    NewEntities = newEntities,
+                    DestroyedEntities = _destroyedEntities.AsArray(),
+                    Difference = hitEntities.AsParallelWriter()
+                }.Schedule(newEntities.Length, 8, default);
 
                 _massOverrideLookup.Update(ref state);
-                _randomLookup.Update(ref state);
-                _flashLookup.Update(ref state);
                 _shrinkLookup.Update(ref state);
+
+                diff.Complete();
 
                 JobHandle destroyerHandle = new LevelDestroyerJob {
                     Time = SystemAPI.Time.ElapsedTime,
-                    Hits = hitEntities.AsArray(),
-                    Entities = _entities.AsParallelWriter(),
+                    Hits = hitEntities,
+                    Entities = _destroyedEntities.AsParallelWriter(),
                     MassOverrides = _massOverrideLookup,
-                    RandomValues = _randomLookup,
-                    Flashes = _flashLookup,
                     Shrinks = _shrinkLookup
                 }.Schedule(hitEntities.Length, 8, state.Dependency);
 
@@ -113,7 +129,7 @@ namespace LevelDown.Systems
         [BurstCompile]
         public void OnDestroy(ref SystemState state)
         {
-            _entities.Dispose();
+            _destroyedEntities.Dispose();
         }
     }
 }

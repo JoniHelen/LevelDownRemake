@@ -6,7 +6,7 @@ using EndSimulation =
 
 namespace LevelDown.Systems
 {
-    [RequireMatchingQueriesForUpdate]
+    [RequireMatchingQueriesForUpdate, UpdateBefore(typeof(FixedStepSimulationSystemGroup))]
     public partial struct ColorExplosionSystem : ISystem
     {
         [BurstCompile]

@@ -13,7 +13,7 @@ namespace LevelDown.Components
 		public override void Bake(ExplosionAuthoring authoring)
 		{
 			var entity = GetEntity(TransformUsageFlags.Dynamic);
-
+            AddBuffer<EntityBufferData>(entity);
             AddComponent(entity, new ColorExplosion
             {
                 Duration = 0.1f,

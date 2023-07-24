@@ -15,6 +15,7 @@ namespace LevelDown.Components
 		{
 			var entity = GetEntity(TransformUsageFlags.Dynamic);
 			AddComponent<LevelDestroyer>(entity);
+			AddBuffer<EntityBufferData>(entity);
 		}
 	}
 }

@@ -8,5 +8,8 @@ namespace LevelDown.Components
     public struct EntityBufferData : IBufferElementData
     {
         public Entity Entity;
+
+        public static implicit operator Entity(EntityBufferData data) => data.Entity;
+        public static implicit operator EntityBufferData(Entity entity) => new() { Entity = entity };
     }
 }

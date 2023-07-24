@@ -46,7 +46,7 @@ namespace LevelDown.Systems
                     queue.Explosions.Add(new ExplosionDescriptor
                     {
                         Duration = 0.1f,
-                        Size = 1.5f,
+                        Size = 3f,
                         Position = _transformLookup[collision.EntityA].Position.xy
                     });
                     SystemAPI.ManagedAPI.GetComponent<ParticleComponent>(collision.EntityA)
@@ -58,7 +58,7 @@ namespace LevelDown.Systems
                     queue.Explosions.Add(new ExplosionDescriptor
                     {
                         Duration = 0.1f,
-                        Size = 1.5f,
+                        Size = 3f,
                         Position = _transformLookup[collision.EntityB].Position.xy
                     });
                     SystemAPI.ManagedAPI.GetComponent<ParticleComponent>(collision.EntityB)

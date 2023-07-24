@@ -15,8 +15,6 @@ namespace LevelDown.Components.Authoring
             var entity = GetEntity(TransformUsageFlags.Dynamic);
 
             AddComponent<Projectile>(entity);
-            AddBuffer<EntityBufferData>(entity);
-
             AddComponentObject(entity, new Managed.ParticleComponent { Obj = authoring.effect });
         }
     }

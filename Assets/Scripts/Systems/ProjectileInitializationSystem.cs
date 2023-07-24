@@ -10,6 +10,7 @@ using EndSimulation =
 
 namespace LevelDown.Systems
 {
+    [UpdateInGroup(typeof(ProjectileSystemGroup))]
     public partial struct ProjectileInitializationSystem : ISystem
     {
         [BurstCompile]
@@ -28,56 +29,28 @@ namespace LevelDown.Systems
                 .WithOptions(EntityQueryOptions.IncludePrefab | EntityQueryOptions.IncludeDisabledEntities)
                 .Build().GetSingletonEntity();
 
-            var explosionPrefab = SystemAPI.QueryBuilder().WithAll<ColorExplosion, Prefab>()
-                .WithOptions(EntityQueryOptions.IncludePrefab | EntityQueryOptions.IncludeDisabledEntities | EntityQueryOptions.IgnoreComponentEnabledState)
-                .Build().GetSingletonEntity();
-
             var projectileCount = SystemAPI.QueryBuilder().WithAll<Projectile, Disabled>()
                 .WithOptions(EntityQueryOptions.IncludeDisabledEntities).Build()
-                .CalculateEntityCount();
-
-            var explosionCount = SystemAPI.QueryBuilder().WithAll<ColorExplosion, Disabled>()
-                .WithOptions(EntityQueryOptions.IncludeDisabledEntities | EntityQueryOptions.IgnoreComponentEnabledState).Build()
                 .CalculateEntityCount();
 
             state.CompleteDependency();
             var singleton = SystemAPI.GetSingleton<ProjectileQueue>();
 
             var requiredProjectiles = singleton.Projectiles.ToArray(Allocator.TempJob);
-            var requiredExplosions = singleton.Explosions.ToArray(Allocator.TempJob);
-
-            if (requiredProjectiles.Length == 0)
-            {
-                requiredProjectiles.Dispose();
-                return;
-            }
 
             singleton.Projectiles.Clear();
 
             if (projectileCount < requiredProjectiles.Length)
                 state.EntityManager.Instantiate(projectilePrefab, requiredProjectiles.Length - projectileCount, Allocator.Temp);
 
-            if (explosionCount < requiredProjectiles.Length)
-                state.EntityManager.Instantiate(explosionPrefab, requiredProjectiles.Length - explosionCount, Allocator.Temp);
-
-            JobHandle expolsionInit = new ExplosionInitializationJob
-            {
-                Descriptors = requiredExplosions,
-                Ecb = SystemAPI.GetSingleton<EndSimulation>()
-                .CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter(),
-                Time = SystemAPI.Time.ElapsedTime
-            }.Schedule(state.Dependency);
-
             JobHandle projectileInit = new ProjectileInitializationJob
             {
                 Descriptors = requiredProjectiles,
                 Ecb = SystemAPI.GetSingleton<EndSimulation>()
                 .CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter()
-            }.ScheduleParallel(expolsionInit);
+            }.ScheduleParallel(state.Dependency);
 
-            state.Dependency = JobHandle.CombineDependencies(
-                requiredProjectiles.Dispose(projectileInit),
-                requiredExplosions.Dispose(expolsionInit));
+            state.Dependency = requiredProjectiles.Dispose(projectileInit);
         }
     }
 }

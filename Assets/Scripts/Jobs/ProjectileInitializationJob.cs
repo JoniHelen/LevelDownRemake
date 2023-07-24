@@ -18,7 +18,8 @@ namespace LevelDown.Jobs
         [ReadOnly] public NativeArray<ProjectileDescriptor> Descriptors;
         public EntityCommandBuffer.ParallelWriter Ecb;
 
-        public void Execute([EntityIndexInQuery] int entityIndex, [ChunkIndexInQuery] int key, Entity entity, ref PhysicsVelocity velocity, ref LocalTransform local)
+        public void Execute([EntityIndexInQuery] int entityIndex, [ChunkIndexInQuery] int key, Entity entity,
+            ref PhysicsVelocity velocity, ref LocalTransform local)
         {
             if (entityIndex >= Descriptors.Length) return;
 
