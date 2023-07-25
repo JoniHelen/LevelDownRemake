@@ -34,33 +34,14 @@ namespace LevelDown.Systems
             _transformLookup.Update(ref state);
 
             var Ecb = SystemAPI.GetSingleton<EndSimulation>().CreateCommandBuffer(state.WorldUnmanaged);
-            var queue = SystemAPI.GetSingleton<ProjectileQueue>();
 
             state.CompleteDependency();
 
             foreach (var collision in SystemAPI.GetSingleton<SimulationSingleton>().AsSimulation().CollisionEvents)
             {
-                if (_projectileLookup.HasComponent(collision.EntityA))
-                {
-                    Ecb.SetEnabled(collision.EntityA, false);
-                    queue.Explosions.Add(new ExplosionDescriptor
-                    {
-                        Duration = 0.1f,
-                        Size = 3f,
-                        Position = _transformLookup[collision.EntityA].Position.xy
-                    });
-                    SystemAPI.ManagedAPI.GetComponent<ParticleComponent>(collision.EntityA)
-                        .Play(_transformLookup[collision.EntityA].Position.xy);
-                }
-                else if (_projectileLookup.HasComponent(collision.EntityB))
+                if (_projectileLookup.HasComponent(collision.EntityB))
                 {
                     Ecb.SetEnabled(collision.EntityB, false);
-                    queue.Explosions.Add(new ExplosionDescriptor
-                    {
-                        Duration = 0.1f,
-                        Size = 3f,
-                        Position = _transformLookup[collision.EntityB].Position.xy
-                    });
                     SystemAPI.ManagedAPI.GetComponent<ParticleComponent>(collision.EntityB)
                         .Play(_transformLookup[collision.EntityB].Position.xy);
                 }

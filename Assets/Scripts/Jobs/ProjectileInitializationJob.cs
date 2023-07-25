@@ -12,7 +12,8 @@ namespace LevelDown.Jobs
     /// <summary>
     /// Initializes projectiles.
     /// </summary>
-    [BurstCompile, WithOptions(EntityQueryOptions.IncludeDisabledEntities), WithAll(typeof(Projectile))]
+    [BurstCompile, WithOptions(EntityQueryOptions.IncludeDisabledEntities),
+        WithAll(typeof(Projectile)), WithDisabled(typeof(ColorExplosion))]
     public partial struct ProjectileInitializationJob : IJobEntity
     {
         [ReadOnly] public NativeArray<ProjectileDescriptor> Descriptors;

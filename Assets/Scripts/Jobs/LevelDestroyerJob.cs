@@ -14,26 +14,36 @@ namespace LevelDown.Jobs
     public partial struct LevelDestroyerJob : IJobParallelFor
     {
         public double Time;
-        public NativeList<Entity>.ParallelWriter Entities;
-        [ReadOnly] public NativeList<Entity> Hits;
+        public NativeParallelHashSet<Entity>.ParallelWriter Entities;
+        [ReadOnly] public NativeArray<Entity> Hits;
 
         [NativeDisableParallelForRestriction]
-        public ComponentLookup<PhysicsMassOverride> MassOverrides;
+        public ComponentLookup<PhysicsMassOverride> MassLookup;
 
         [NativeDisableParallelForRestriction]
-        public ComponentLookup<Shrinking> Shrinks;
+        public ComponentLookup<Shrinking> ShrinkLookup;
+
+        [NativeDisableParallelForRestriction]
+        public ComponentLookup<ColorFlash> FlashLookup;
+
+        [NativeDisableParallelForRestriction]
+        public ComponentLookup<RandomValue> RandomLookup;
 
         public void Execute(int index)
         {
             var entity = Hits[index];
 
             // Start "destruction"
-            Entities.AddNoResize(entity);
-            MassOverrides.GetRefRW(entity).ValueRW.IsKinematic = 0;
+            Entities.Add(entity);
+            MassLookup.GetRefRW(entity).ValueRW.IsKinematic = 0;
 
-            var shrink = Shrinks.GetRefRW(entity);
-            shrink.ValueRW.StartTime = Time;
-            Shrinks.SetComponentEnabled(entity, true);
+            var shrink = ShrinkLookup.GetRefRW(entity);
+            var flash = FlashLookup.GetRefRW(entity);
+            shrink.ValueRW.StartTime = flash.ValueRW.StartTime = Time;
+            flash.ValueRW.FlashBrightness = 15f;
+            flash.ValueRW.FlashColor = UnityEngine.Color.HSVToRGB(RandomLookup.GetRefRW(entity).ValueRW.Value.NextFloat(), 1, 1);
+            ShrinkLookup.SetComponentEnabled(entity, true);
+            FlashLookup.SetComponentEnabled(entity, true);
         }
     }
 }
