@@ -30,7 +30,7 @@ namespace LevelDown.Systems
                 .Build().GetSingletonEntity();
 
             var projectileCount = SystemAPI.QueryBuilder().WithAll<Projectile, Disabled>()
-                .WithOptions(EntityQueryOptions.IncludeDisabledEntities).Build()
+                .WithDisabled<ColorExplosion>().WithOptions(EntityQueryOptions.IncludeDisabledEntities).Build()
                 .CalculateEntityCount();
 
             state.CompleteDependency();

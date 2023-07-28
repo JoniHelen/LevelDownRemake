@@ -3,6 +3,7 @@ using Unity.Physics;
 using Unity.Burst;
 using Unity.Jobs;
 using Unity.Mathematics;
+using Unity.Physics.Systems;
 using Unity.Collections;
 using LevelDown.Components.Triggers;
 using LevelDown.Components;
@@ -15,6 +16,7 @@ namespace LevelDown.Systems
     /// <summary>
     /// This system is responsible for destroying completed levels
     /// </summary>
+    [UpdateInGroup(typeof(AfterPhysicsSystemGroup))]
     public partial struct LevelDestroyerSystem : ISystem, ISystemStartStop
     {
         private ComponentLookup<PhysicsMassOverride> _massOverrideLookup;

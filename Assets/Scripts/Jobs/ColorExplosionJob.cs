@@ -5,7 +5,6 @@ using LevelDown.Components;
 using LevelDown.Components.Aspects;
 using Unity.Collections;
 using Unity.Physics;
-using System;
 
 namespace LevelDown.Jobs
 {
@@ -21,7 +20,7 @@ namespace LevelDown.Jobs
         [NativeDisableParallelForRestriction]
         public ComponentLookup<RandomValue> RandomLookup;
 
-        public CollisionWorld QueryWorld;
+        [ReadOnly] public CollisionWorld QueryWorld;
 
         public void Execute([ChunkIndexInQuery] int key, Entity entity,
             ColorExplosionAspect explosion, ref LocalTransform local)

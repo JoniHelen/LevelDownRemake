@@ -1,17 +1,16 @@
 using Unity.Entities;
 using Unity.Physics;
+using Unity.Physics.Systems;
 using Unity.Burst;
 using Unity.Transforms;
 using LevelDown.Components;
-using LevelDown.Components.Singletons;
 using LevelDown.Components.Managed;
-using LevelDown.Input;
 using EndSimulation =
     Unity.Entities.EndSimulationEntityCommandBufferSystem.Singleton;
 
 namespace LevelDown.Systems
 {
-    [UpdateInGroup(typeof(ManagedSystemGroup))]
+    [UpdateInGroup(typeof(AfterPhysicsSystemGroup))]
     public partial struct ProjectileCollisionSystem : ISystem
     {
         private ComponentLookup<Projectile> _projectileLookup;
@@ -39,12 +38,19 @@ namespace LevelDown.Systems
 
             foreach (var collision in SystemAPI.GetSingleton<SimulationSingleton>().AsSimulation().CollisionEvents)
             {
-                if (_projectileLookup.HasComponent(collision.EntityB))
-                {
-                    Ecb.SetEnabled(collision.EntityB, false);
-                    SystemAPI.ManagedAPI.GetComponent<ParticleComponent>(collision.EntityB)
-                        .Play(_transformLookup[collision.EntityB].Position.xy);
-                }
+                var ent = Entity.Null;
+                if (_projectileLookup.HasComponent(collision.EntityA))
+                    ent = collision.EntityA;
+                else if (_projectileLookup.HasComponent(collision.EntityB))
+                    ent = collision.EntityB;
+
+                if (ent == Entity.Null) return;
+
+                Ecb.SetEnabled(ent, false);
+                _explosionLookup.SetComponentEnabled(ent, true);
+                _explosionLookup.GetRefRW(ent).ValueRW.StartTime = SystemAPI.Time.ElapsedTime;
+                SystemAPI.ManagedAPI.GetComponent<ParticleComponent>(ent)
+                    .Play(_transformLookup[ent].Position.xy);
             }
         }
     }
